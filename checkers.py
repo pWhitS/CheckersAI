@@ -97,32 +97,43 @@ class CheckersBoard(object):
 		return (row, col)
 
 
+	def moveIsValid(self, prow, pcol, mrow, mcol, playerId):
+		# Outside of the board checks
+		if prow < 0 or prow > self.boardHeight:
+			return False
+		if pcol < 0 or pcol > self.boardWidth:
+			return False	
+		if mrow < 0 or mrow > self.boardHeight:
+			return False
+		if mcol < 0 or mcol > self.boardWidth:
+			return False
+
+		# Player slected a valid piece
+		if self.getCell(prow, pcol) != playerId:
+			return False
+
+		# Player can move to point
+		if self.getCell(mrow, mcol) != 0:
+			return False
+
+		return True
+
 	def doMove(self, piece, move):
 		# Execute the specified move as the specified player.
 		# Return a new board with the result.  
 		prow, pcol = self._getGamePiecePoint(piece)
 		mrow, mcol = self._getGamePiecePoint(move) 
-
 		playerId = self.getCurrentPlayerId() 
 
-		#Series of checks to ensure the move is valid
-		if prow < 0 or prow > self.boardHeight:
-			raise InvalidMoveException()
-		if pcol < 0 or pcol > self.boardWidth:
-			raise InvalidMoveException()
-		if self.getCell(prow, pcol) != playerId:
-			raise InvalidMoveException()
-
-		if mrow < 0 or mrow > self.boardHeight:
-			raise InvalidMoveException()
-		if mcol < 0 or mcol > self.boardWidth:
+		# Series of checks to ensure the move is valid
+		if not self.moveIsValid():
 			raise InvalidMoveException()
 
 		newBoard = list( map(list, self.getBoardArray()) )
 		newBoard[prow][pcol] = 0
 		newBoard[mrow][mcol] = playerId
 
-		#Make the board immutable again
+		# Make the board immutable again
 		newBoard = tuple( map(tuple, newBoard) )
 
 		return CheckersBoard(newBoard, self.getOtherPlayerId())
