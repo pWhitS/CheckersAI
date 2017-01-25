@@ -152,7 +152,6 @@ class CheckersBoard(object):
 		# This is a jump
 		if self._isJump(piece, move) != None:
 			jrow, jcol = self._isJump(piece, move)
-			
 			if curBoard[jrow][jcol] != self.getOtherPlayerId():
 				return False
 
@@ -196,8 +195,20 @@ class CheckersBoard(object):
 		return 0
 
 
+	def draw(self):
+		return False
+
+
+	def isGameOver(self):
+		if self.isWin() != 0:
+			return True
+		if self.draw():
+			return True
+		return False
+
+
 	def copy(self):
-		return CheckersBoard(newBoard, self.getCurrentPlayerId())
+		return CheckersBoard(self.getBoardArray(), self.getCurrentPlayerId())
 
 
 	def getPieceCount(self):
@@ -238,13 +249,79 @@ class CheckersBoard(object):
 
 
 class CheckersRunner(object):
-	pass
+
+	def __init__(self, player1_callback, player2_callback, _board=CheckersBoard()):
+		self.board = _board
+		self.player1_callback = player1_callback
+		self.player2_callback = player2_callback
+
+
+	def get_board(self):
+		return self.board
+
+
+	def run_game(self, verbose=True):
+		player1 = (self.player1_callback, 1, self.board.board_symbol_mapping[1])
+		player2 = (self.player2_callback, 2, self.board.board_symbol_mapping[2])
+
+		is_player_win = False
+
+		while not is_player_win and not self.board.draw():
+			for callback, pid, symbol in (player1, player2):
+				if verbose:
+					print(str(self.board))
+
+				is_still_moving = True
+
+				while is_still_moving:
+					try:
+						new_move = callback(self.board.copy())
+						print("Player %s %s, Move: %s" % (pid, str(symbol), new_move))  
+
+						game_piece, game_move = new_move
+						self.board = self.board.doMove(game_piece, [game_move])
+						is_still_moving = False
+					except InvalidMoveException as e:
+						print(str(e))
+						print("Illegal move attempted.  Please try again.")
+						continue
+
+				if self.board.isGameOver():
+					is_player_win = self.board.isWin()
+					break
+
+		is_player_win = self.board.isWin()
+		print("win:", is_player_win)
+
+
+
+def human_player(board):
+	# A callback that asks the user what to do
+	target_piece = None
+	target_move = None
+
+	while type(target_piece) != str and type(target_move) != str:
+		target_piece = input("Pick a piece to move (A7): --> ")
+		target_move = input("Pick a piece to move (B6): --> ")
+		try:
+			target_piece = str(target_piece)
+			target_move = str(target_move)
+		except ValueError:
+			print("Please specify a correctly formatted piece and move.")
+
+	return (target_piece, target_move)
+
+
+def run_game(player1, player2, board=CheckersBoard()):
+	game = CheckersRunner(player1, player2, board)
+	return game.run_game()
 
 
 if __name__ == "__main__":
-	cb = CheckersBoard()
+	# cb = CheckersBoard()
+	# print(cb)
+	# print(cb.doMove("A5", ["C3"]))
 
-	print(cb)
-	print(cb.doMove("A5", ["C3"]))
+	run_game(human_player, human_player)
 
 
