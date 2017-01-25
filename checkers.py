@@ -85,19 +85,25 @@ class CheckersBoard(object):
 		return self.boardArray[row][col]
 
 
-	def _getGamePiecePoint(self, token):
+	def _getPointFromToken(self, token):
 		# Interprets tokens as: (column, Row)
 		# Returns traditional: (row, column)
 		colstr = "ABCDEFGH"
-		print(token)
-
 		row = int(token[1])	
 		col = colstr.find(token[0].upper())
-		
 		return (row, col)
 
 
-	def moveIsValid(self, prow, pcol, mrow, mcol, playerId):
+	def _getTokenFromPoint(self, point):
+		# Returns a token on the board from a (row, col) point
+		colstr = "ABCDEFGH"
+		row, col = point
+		token = colstr[col]
+		token += str(row)
+		return token
+		
+
+	def moveIsValid(self, prow, pcol, mrow, mcol, playerId, curBoard):
 		# Outside of the board checks
 		if prow < 0 or prow > self.boardHeight:
 			return False
@@ -109,29 +115,54 @@ class CheckersBoard(object):
 			return False
 
 		# Player slected a valid piece
-		if self.getCell(prow, pcol) != playerId:
+		if curBoard[prow][pcol] != playerId:
 			return False
 
 		# Player can move to point
-		if self.getCell(mrow, mcol) != 0:
+		if curBoard[mrow][mcol] != 0:
 			return False
 
-		return True
+		rdelta = abs(mrow - prow)
+		cdelta = abs(mcol - pcol)
+		# This is a jump
+		print("deltas:", rdelta, cdelta)
+		if rdelta > 1 and cdelta > 1:
+			jumpPieceRow = 0
+			jumpPieceCol = 0
+			
+			if mrow > prow: # Upward jump
+				jumpPieceRow = prow - 1
+			else: # Downward jump
+				jumpPieceRow = prow + 1
 
-	def doMove(self, piece, move):
+			if mcol > pcol: # Right jump
+				jumpPieceCol = prow + 1
+			else: # Left jump
+				jumpPieceCol = prow - 1
+
+			if curBoard[jumpPieceRow][jumpPieceCol] != self.getOtherPlayerId():
+				return False
+
+		return True
+		
+
+	def doMove(self, piece, moveset):
 		# Execute the specified move as the specified player.
 		# Return a new board with the result.  
-		prow, pcol = self._getGamePiecePoint(piece)
-		mrow, mcol = self._getGamePiecePoint(move) 
-		playerId = self.getCurrentPlayerId() 
-
-		# Series of checks to ensure the move is valid
-		if not self.moveIsValid():
-			raise InvalidMoveException()
-
 		newBoard = list( map(list, self.getBoardArray()) )
-		newBoard[prow][pcol] = 0
-		newBoard[mrow][mcol] = playerId
+
+		for move in moveset:
+			prow, pcol = self._getPointFromToken(piece)
+			mrow, mcol = self._getPointFromToken(move) 
+			playerId = self.getCurrentPlayerId() 
+
+			# Series of checks to ensure the move is valid
+			if not self.moveIsValid(prow, pcol, mrow, mcol, playerId, newBoard):
+				raise InvalidMoveException()
+
+			newBoard[prow][pcol] = 0
+			newBoard[mrow][mcol] = playerId
+			piece = self._getTokenFromPoint((mrow, mcol))
 
 		# Make the board immutable again
 		newBoard = tuple( map(tuple, newBoard) )
@@ -197,7 +228,8 @@ class CheckersRunner(object):
 
 if __name__ == "__main__":
 	cb = CheckersBoard()
-	print(cb)
-	print(cb.doMove("A5", "B4"))
+
+	#print(cb)
+	print(cb.doMove("A5", ["B4", "C3"]))
 
 
