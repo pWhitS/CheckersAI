@@ -192,46 +192,46 @@ class CheckersBoard(object):
 
 		# Outside of the board checks
 		if prow < 0 or prow >= self.boardHeight:
-			print("1")
+			print("Rule Violation: 1")
 			return False
 		if pcol < 0 or pcol >= self.boardWidth:
-			print("2")
+			print("Rule Violation: 2")
 			return False	
 		if mrow < 0 or mrow >= self.boardHeight:
-			print("3")
+			print("Rule Violation: 3")
 			return False
 		if mcol < 0 or mcol >= self.boardWidth:
-			print("4")
+			print("Rule Violation: 4")
 			return False
 
 		# Player slected a valid piece
 		if curBoard[prow][pcol] not in self.getCurrentPlayerPieceIds():
 			print(curBoard[prow][pcol], self.getCurrentPlayerPieceIds())
-			print("5")
+			print("Rule Violation: 5")
 			return False
 
 		# Move point is not empty
 		if curBoard[mrow][mcol] != 0:
-			print("6")
+			print("Rule Violation: 6")
 			return False
 
 		# Player 1 non-King pieces can only move down rows
 		if curBoard[prow][pcol] == 1:
 			if mrow >= prow:
-				print("7")
+				print("Rule Violation: 7")
 				return False
 
 		# Player 2 non-King pieces can only move up rows
 		if curBoard[prow][pcol] == 2:
 			if mrow <= prow:
-				print("8")
+				print("Rule Violation: 8")
 				return False
 
 		# This is a jump
 		if self._isJump(piece, move) != None:
 			jrow, jcol = self._isJump(piece, move)
 			if curBoard[jrow][jcol] not in self.getOtherPlayerPieceIds():
-				print("9")
+				print("Rule Violation: 9")
 				return False
 
 		return True
