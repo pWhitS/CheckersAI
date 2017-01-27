@@ -1,6 +1,7 @@
 import unicodedata
 import sys
 
+VERBOSE = False
 
 class InvalidMoveException(Exception):
 	""" Exception raised if someone tries to make an invalid move """
@@ -192,46 +193,54 @@ class CheckersBoard(object):
 
 		# Outside of the board checks
 		if prow < 0 or prow >= self.boardHeight:
-			print("Rule Violation: 1")
+			if VERBOSE:
+				print("Rule Violation: 1")
 			return False
 		if pcol < 0 or pcol >= self.boardWidth:
-			print("Rule Violation: 2")
+			if VERBOSE:
+				print("Rule Violation: 2")
 			return False	
 		if mrow < 0 or mrow >= self.boardHeight:
-			print("Rule Violation: 3")
+			if VERBOSE:
+				print("Rule Violation: 3")
 			return False
 		if mcol < 0 or mcol >= self.boardWidth:
-			print("Rule Violation: 4")
+			if VERBOSE:
+				print("Rule Violation: 4")
 			return False
 
 		# Player slected a valid piece
 		if curBoard[prow][pcol] not in self.getCurrentPlayerPieceIds():
-			print(curBoard[prow][pcol], self.getCurrentPlayerPieceIds())
-			print("Rule Violation: 5")
+			if VERBOSE:
+				print("Rule Violation: 5")
 			return False
 
 		# Move point is not empty
 		if curBoard[mrow][mcol] != 0:
-			print("Rule Violation: 6")
+			if VERBOSE:
+				print("Rule Violation: 6")
 			return False
 
 		# Player 1 non-King pieces can only move down rows
 		if curBoard[prow][pcol] == 1:
 			if mrow >= prow:
-				print("Rule Violation: 7")
+				if VERBOSE:
+					print("Rule Violation: 7")
 				return False
 
 		# Player 2 non-King pieces can only move up rows
 		if curBoard[prow][pcol] == 2:
 			if mrow <= prow:
-				print("Rule Violation: 8")
+				if VERBOSE:
+					print("Rule Violation: 8")
 				return False
 
 		# Player must jump over an opponent piece
 		if self._isJump(piece, move) != None:
 			jrow, jcol = self._isJump(piece, move)
 			if curBoard[jrow][jcol] not in self.getOtherPlayerPieceIds():
-				print("Rule Violation: 9")
+				if VERBOSE:
+					print("Rule Violation: 9")
 				return False
 
 		return True

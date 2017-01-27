@@ -1,14 +1,14 @@
 from checkers import *
 
 
-def basic_evaluate():
-	pass
+def basic_evaluate(board):
+	return 1
 
-def is_terminal():
-	pass
 
-# ('D2', 'B4')  
-# ('B4', 'D6 F4')
+def is_terminal(depth, board):
+	return (depth <= 0) or board.isGameOver()
+
+
 def combine_move_sets(move_set_1, move_set_2):
 	if not move_set_2:
 		return []
@@ -77,7 +77,30 @@ def get_all_next_moves(board, move_depth):
 		except InvalidMoveException:
 			continue
 	
-	return move_set
+	for piece, move in move_set:
+		try:
+			yield ((piece, move), board.doMove(piece, move))
+		except InvalidMoveException:
+			pass
+
+
+def minimax_search(board, depth, eval_fn,
+				   get_next_moves_fn = get_all_next_moves,
+				   is_terminal_fn = is_terminal):
+	if is_terminal_fn(depth, board):
+		return eval_fn(board)
+
+	best_val = None
+
+	for move, new_board in get_all_next_moves(board, 0):
+		val = -1 * minimax_search(new_board, depth-1, eval_fn,
+								  get_next_moves_fn,
+								  is_terminal_fn)
+
+		if best_val is None or val > best_val:
+			best_val = val
+
+	return val
 
 
 def minimax(board, depth, eval_fn = basic_evaluate,
@@ -86,20 +109,15 @@ def minimax(board, depth, eval_fn = basic_evaluate,
 			verbose = True):
 	best_val = None
 
-	print(board)
-	print("-->", get_all_next_moves(board, 0))
+	for move, new_board in get_all_next_moves(board, 0):
+		val = -1 * minimax_search(new_board, depth-1, eval_fn,
+								  get_next_moves_fn,
+								  is_terminal_fn)
 
-	for move in get_all_next_moves(board, 0):
-		piece = move[0]
-		move_set = move[1]
-		new_board = None
+		if best_val is None or val > best_val[0]:
+			best_val = (val, move, new_board)
 
-		try:
-			new_board = board.doMove(piece, move_set)
-		except InvalidMoveException:
-			pass
-
-		print(new_board)
+	return best_val[1] #return the move
 
 
 
@@ -110,9 +128,10 @@ def alpha_beta_search():
 
 
 
-
-board = CheckersBoard()
-minimax(board, depth=4)
+if __name__ == "__main__":
+	basic_player = lambda board: minimax(board, depth=4, eval_fn=basic_evaluate)
+	
+	run_game(basic_player, human_player)
 
 
 
