@@ -68,7 +68,6 @@ def get_all_next_moves(board, move_depth):
 	# Check for multiple jumps
 	for move in move_set:
 		if board._isJump(move[0], move[1]) is None:
-			move_set.remove(move)
 			continue
 
 		try:
@@ -89,6 +88,19 @@ def minimax(board, depth, eval_fn = basic_evaluate,
 
 	print(board)
 	print("-->", get_all_next_moves(board, 0))
+
+	for move in get_all_next_moves(board, 0):
+		piece = move[0]
+		move_set = move[1]
+		new_board = None
+
+		try:
+			new_board = board.doMove(piece, move_set)
+		except InvalidMoveException:
+			pass
+
+		print(new_board)
+
 
 
 

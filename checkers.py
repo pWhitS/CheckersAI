@@ -50,14 +50,14 @@ class CheckersBoard(object):
 
 	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=100):
 		if _boardArray is None:
-			# self.boardArray = ( ( 5, 2, 5, 2, 5, 2, 5, 2 ),
-			# 					( 2, 5, 2, 5, 2, 5, 2, 5 ),
-			# 					( 5, 2, 5, 2, 5, 2, 5, 2 ),
-			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
-			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
-			# 					( 1, 5, 1, 5, 1, 5, 1, 5 ),
-			# 					( 5, 1, 5, 1, 5, 1, 5, 1 ),
-			# 					( 1, 5, 1, 5, 1, 5, 1, 5 ), )
+			self.boardArray = ( ( 5, 2, 5, 2, 5, 2, 5, 2 ),
+								( 2, 5, 2, 5, 2, 5, 2, 5 ),
+								( 5, 2, 5, 2, 5, 2, 5, 2 ),
+								( 0, 5, 0, 5, 0, 5, 0, 5 ),
+								( 5, 0, 5, 0, 5, 0, 5, 0 ),
+								( 1, 5, 1, 5, 1, 5, 1, 5 ),
+								( 5, 1, 5, 1, 5, 1, 5, 1 ),
+								( 1, 5, 1, 5, 1, 5, 1, 5 ), )
 			# TEST BOARDS
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 1, 5, 0, 5, 0, 5 ),
@@ -67,14 +67,14 @@ class CheckersBoard(object):
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 2, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
-			self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
-								( 0, 5, 0, 5, 0, 5, 0, 5 ),
-								( 5, 0, 5, 3, 5, 0, 5, 0 ),
-								( 0, 5, 2, 5, 0, 5, 0, 5 ),
-								( 5, 0, 5, 0, 5, 0, 5, 0 ),
-								( 0, 5, 2, 5, 2, 5, 0, 5 ),
-								( 5, 0, 5, 0, 5, 0, 5, 0 ),
-								( 0, 5, 0, 5, 0, 5, 0, 5 ), )
+			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
+			# 					( 5, 0, 5, 3, 5, 0, 5, 0 ),
+			# 					( 0, 5, 2, 5, 0, 5, 0, 5 ),
+			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 2, 5, 2, 5, 0, 5 ),
+			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
 		else:
 			# store an immutable copy
 			self.boardArray = tuple( map(tuple, _boardArray) )
@@ -227,7 +227,7 @@ class CheckersBoard(object):
 				print("Rule Violation: 8")
 				return False
 
-		# This is a jump
+		# Player must jump over an opponent piece
 		if self._isJump(piece, move) != None:
 			jrow, jcol = self._isJump(piece, move)
 			if curBoard[jrow][jcol] not in self.getOtherPlayerPieceIds():
@@ -242,6 +242,9 @@ class CheckersBoard(object):
 		# Return a new board with the result.  
 		if len(moveset) == 0:
 			raise InvalidMoveException(moveset, self)
+
+		if type(moveset) is not list:
+			moveset = [moveset]
 
 		newBoard = list( map(list, self.getBoardArray()) )
 
