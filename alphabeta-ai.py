@@ -13,12 +13,28 @@ def combine_move_sets(move_set_1, move_set_2):
 	if not move_set_2:
 		return []
 
-	orig_piece = None
-	orig_move = None
+	# print("ms1: ", move_set_1)
+	# print("ms2: ", move_set_2)
+
+	ms1_piece, ms1_move = None, None
+	ms2_piece, ms2_move = None, None
+	new_move_set = list(move_set_1)
+	new_move = None
 
 	for i, m1 in enumerate(move_set_1):
-		orig_piece = m1[0]
-		orig_move = m1[1]
+		ms1_piece = m1[0]
+		ms1_move = m1[1]
+		for j, m2 in enumerate(move_set_2):
+			ms2_piece = m2[0]
+			ms2_move = m2[1]
+
+			if ms1_move == ms2_piece:
+				new_move = "%s %s" % (ms1_move, ms2_move)
+				new_move = (ms1_piece, new_move)
+				new_move_set.append(new_move)
+
+	#print("NMS:", new_move_set)
+	return new_move_set
 
 
 def get_all_next_moves(board, move_depth):
@@ -29,13 +45,12 @@ def get_all_next_moves(board, move_depth):
 	# Allow single space moves for the first move
 	if move_depth == 0: 
 		first_order = [-1, 1]
-	
-	move_orders = [first_order, second_order]
 
+	move_orders = [first_order, second_order]
 	move_set = []
 	all_pieces = board.getAllPlayerPieces(board.getCurrentPlayerId())
 	if move_depth > 0:
-		print("AP:", all_pieces)
+		print("AP:", move_depth, all_pieces)
 
 	# Get all possible move positions from current position (unfiltered)
 	for piece in all_pieces:
@@ -51,19 +66,16 @@ def get_all_next_moves(board, move_depth):
 					move_set.append( (piece_token, candidate_move_token) )
 
 	# Check for multiple jumps
-	move_set_copy = list(move_set) #copy so we can modify move_set in the loop
-	for move in move_set_copy:
+	for move in move_set:
 		if board._isJump(move[0], move[1]) is None:
-			move_set.remove(move) #removes non-jump moves from the set of moves
+			move_set.remove(move)
 			continue
 
 		try:
 			new_board = board_copy.doMove(move[0], [move[1]])
 			new_board.currentPlayer = board_copy.currentPlayer
-			#move_set = combine_move_sets(move_set, get_all_next_moves(new_board, move_depth+1))
-			print("MS:", get_all_next_moves(new_board, move_depth+1))
+			move_set = combine_move_sets(list(move_set), get_all_next_moves(new_board, move_depth+1))
 		except InvalidMoveException:
-			move_set.remove(move) #removes invalid moves from the set of moves
 			continue
 	
 	return move_set
@@ -76,7 +88,7 @@ def minimax(board, depth, eval_fn = basic_evaluate,
 	best_val = None
 
 	print(board)
-	print(get_all_next_moves(board, 0))
+	print("-->", get_all_next_moves(board, 0))
 
 
 
