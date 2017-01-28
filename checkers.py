@@ -1,7 +1,7 @@
 import unicodedata
 import sys
 
-VERBOSE = False
+VERY_VERBOSE = False
 
 class InvalidMoveException(Exception):
 	""" Exception raised if someone tries to make an invalid move """
@@ -117,11 +117,11 @@ class CheckersBoard(object):
 
 	def getCell(self, row, col):
 		# return player id in the cell
-		# if empty return 0 or 3
+		# if empty return 0 or 5
 		return self.boardArray[row][col]
 
 
-	def kingMe(self, board, verbose=True):
+	def kingMe(self, board, verbose=False):
 		for col in range(self.boardWidth):
 			# Player 1, non-king piece
 			if board[0][col] == 1:
@@ -130,7 +130,7 @@ class CheckersBoard(object):
 					print("King Me! Player 1 %s  piece is Kinged!" % (self.board_symbol_mapping[3]))
 
 			# Player 2, non-king piece
-			if board[7][col]== 2: 
+			if board[7][col] == 2: 
 				board[7][col] = 4
 				if verbose:
 					print("King Me! Player 2 %s  piece is Kinged!" % (self.board_symbol_mapping[4]))
@@ -193,45 +193,45 @@ class CheckersBoard(object):
 
 		# Outside of the board checks
 		if prow < 0 or prow >= self.boardHeight:
-			if VERBOSE:
+			if VERY_VERBOSE:
 				print("Rule Violation: 1")
 			return False
 		if pcol < 0 or pcol >= self.boardWidth:
-			if VERBOSE:
+			if VERY_VERBOSE:
 				print("Rule Violation: 2")
 			return False	
 		if mrow < 0 or mrow >= self.boardHeight:
-			if VERBOSE:
+			if VERY_VERBOSE:
 				print("Rule Violation: 3")
 			return False
 		if mcol < 0 or mcol >= self.boardWidth:
-			if VERBOSE:
+			if VERY_VERBOSE:
 				print("Rule Violation: 4")
 			return False
 
 		# Player slected a valid piece
 		if curBoard[prow][pcol] not in self.getCurrentPlayerPieceIds():
-			if VERBOSE:
+			if VERY_VERBOSE:
 				print("Rule Violation: 5")
 			return False
 
 		# Move point is not empty
 		if curBoard[mrow][mcol] != 0:
-			if VERBOSE:
+			if VERY_VERBOSE:
 				print("Rule Violation: 6")
 			return False
 
 		# Player 1 non-King pieces can only move down rows
 		if curBoard[prow][pcol] == 1:
 			if mrow >= prow:
-				if VERBOSE:
+				if VERY_VERBOSE:
 					print("Rule Violation: 7")
 				return False
 
 		# Player 2 non-King pieces can only move up rows
 		if curBoard[prow][pcol] == 2:
 			if mrow <= prow:
-				if VERBOSE:
+				if VERY_VERBOSE:
 					print("Rule Violation: 8")
 				return False
 
@@ -239,7 +239,7 @@ class CheckersBoard(object):
 		if self._isJump(piece, move) != None:
 			jrow, jcol = self._isJump(piece, move)
 			if curBoard[jrow][jcol] not in self.getOtherPlayerPieceIds():
-				if VERBOSE:
+				if VERY_VERBOSE:
 					print("Rule Violation: 9")
 				return False
 
@@ -253,7 +253,7 @@ class CheckersBoard(object):
 			raise InvalidMoveException(moveset, self)
 
 		if type(moveset) is not list:
-			moveset = [moveset]
+			moveset = moveset.strip().split()
 
 		newBoard = list( map(list, self.getBoardArray()) )
 
@@ -289,7 +289,7 @@ class CheckersBoard(object):
 
 
 	def isWin(self):
-		whitePieces, blackPieces, total = self.getPieceCount()
+		whitePieces, blackPieces = self.getPieceCount()
 		if whitePieces == 0:
 			return 2
 		if blackPieces == 0:
@@ -316,8 +316,8 @@ class CheckersBoard(object):
 
 
 	def getPieceCount(self):
-		black = 0
-		white = 0
+		white = 0 # Red
+		black = 0 # White
 
 		for i in range(self.boardHeight):
 			for j in range(self.boardWidth):
@@ -327,7 +327,7 @@ class CheckersBoard(object):
 				elif pid in [2, 4]:
 					black += 1
 
-		return (white, black, white+black)
+		return (white, black)
 
 
 	def getAllPlayerPieces(self, playerid):
@@ -402,8 +402,10 @@ class CheckersRunner(object):
 						print("\nPlayer %s %s  - Move: %s" % (pid, str(symbol), new_move))  
 
 						game_piece, game_move = new_move
-						game_move = game_move.strip().split()
-						self.board = self.board.doMove(game_piece, game_move)
+						if game_move == "-1-1":
+							is_player_win = int("-%s" % (str(pid)))
+						else:							
+							self.board = self.board.doMove(game_piece, game_move)
 
 						is_still_moving = False
 					except InvalidMoveException as e:
@@ -418,6 +420,8 @@ class CheckersRunner(object):
 		if (not is_player_win) and self.board.isDraw():
 			print("It's a draw! No winner is declared.")
 			return 0
+		elif is_player_win < 0:
+			print("Player %s concedes the match." % str(is_player_win)[1]) 
 		else:
 			is_player_win = self.board.isWin()
 			print("win:", is_player_win)
