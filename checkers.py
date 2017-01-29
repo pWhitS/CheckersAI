@@ -52,6 +52,7 @@ class CheckersBoard(object):
 
 	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=100):
 		if _boardArray is None:
+			# Normal Starting Board
 			self.boardArray = ( ( 5, 2, 5, 2, 5, 2, 5, 2 ),
 								( 2, 5, 2, 5, 2, 5, 2, 5 ),
 								( 5, 2, 5, 2, 5, 2, 5, 2 ),
@@ -61,6 +62,7 @@ class CheckersBoard(object):
 								( 5, 1, 5, 1, 5, 1, 5, 1 ),
 								( 1, 5, 1, 5, 1, 5, 1, 5 ), )
 			## TEST BOARDS ##
+			# 1 piece each, opposite ends
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 1, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
@@ -69,6 +71,7 @@ class CheckersBoard(object):
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 2, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
+			# King, tripple jump
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 3, 5, 0, 5, 0 ),
@@ -77,6 +80,7 @@ class CheckersBoard(object):
 			# 					( 0, 5, 2, 5, 2, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
+			# Player 2, close win
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 0, 5, 2, 5, 0, 5 ),
 			# 					( 5, 0, 5, 2, 5, 0, 5, 2 ),
@@ -85,6 +89,15 @@ class CheckersBoard(object):
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 4, 5, 0, 5, 0, 5, 0, 5 ), )
+			# Almost certain draw
+			# self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
+			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
+			# 					( 5, 1, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 2, 5, 2, 5 ),
+			# 					( 5, 2, 5, 4, 5, 0, 5, 1 ),
+			# 					( 4, 5, 4, 5, 0, 5, 4, 5 ), )
 		else:
 			# store an immutable copy
 			self.boardArray = tuple( map(tuple, _boardArray) )
@@ -435,9 +448,11 @@ class CheckersRunner(object):
 
 		if (not is_player_win) and self.board.isDraw():
 			print("It's a draw! No winner is declared.")
+			print(str(self.board))
 			return 0
 		elif is_player_win < 0:
 			print("Player %s concedes the match." % str(is_player_win)[1]) 
+			print(str(self.board))
 		else:
 			is_player_win = self.board.isWin()
 			print("win:", is_player_win)
