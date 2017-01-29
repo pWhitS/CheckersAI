@@ -1,5 +1,6 @@
 from checkers import *
 from util import *
+from multiprocessing import Pool
 
 VERY_VERBOSE = False
 
@@ -219,6 +220,7 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 	return best_move[2]
 
 
+
 if __name__ == "__main__":
 	basic_evaluate = memoize(basic_evaluate)
 
@@ -240,7 +242,9 @@ if __name__ == "__main__":
 													  timeout=25)
 
 	#run_game(basic_player_pd, basic_player_pd)
-	run_game(ab_player_pd, basic_player_pd)
+	#run_game(ab_player_pd, basic_player_pd)
+
+	run_game(human_player, ab_player_pd)
 
 
 
