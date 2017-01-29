@@ -5,16 +5,17 @@ VERY_VERBOSE = False
 
 class InvalidMoveException(Exception):
 	""" Exception raised if someone tries to make an invalid move """
-	def __init__(self, _move, _board):
+	def __init__(self, _piece, _move, _board):
 		"""
 		'board' is the board on which the movement took place;
 		'move' is the move to which an addition was attempted
 		"""
+		self.piece = _piece
 		self.move = _move
 		self.board = _board
 
 	def __str__(self):
-		return "InvalidMoveException: " + str(self.move) + "\n" + str(self.board)
+		return "InvalidMoveException: (%s, %s) \n%s" % (str(self.piece), str(self.move), str(self.board))
 
 	def __repr__(self):
 		return self.__str__()
@@ -59,7 +60,7 @@ class CheckersBoard(object):
 								( 1, 5, 1, 5, 1, 5, 1, 5 ),
 								( 5, 1, 5, 1, 5, 1, 5, 1 ),
 								( 1, 5, 1, 5, 1, 5, 1, 5 ), )
-			# TEST BOARDS
+			## TEST BOARDS ##
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 1, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
@@ -76,6 +77,14 @@ class CheckersBoard(object):
 			# 					( 0, 5, 2, 5, 2, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
+			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 2, 5, 0, 5 ),
+			# 					( 5, 0, 5, 2, 5, 0, 5, 2 ),
+			# 					( 2, 5, 0, 5, 2, 5, 1, 5 ),
+			# 					( 5, 2, 5, 0, 5, 1, 5, 2 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
+			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 4, 5, 0, 5, 0, 5, 0, 5 ), )
 		else:
 			# store an immutable copy
 			self.boardArray = tuple( map(tuple, _boardArray) )
@@ -188,6 +197,11 @@ class CheckersBoard(object):
 
 
 	def moveIsValid(self, piece, move, curBoard):
+		if len(piece) != 2 or len(move) != 2:
+			if VERY_VERBOSE:
+				print("Rule Violation: 0")
+			return False
+
 		prow, pcol = self._getPointFromToken(piece)
 		mrow, mcol = self._getPointFromToken(move)
 
@@ -250,7 +264,7 @@ class CheckersBoard(object):
 		# Execute the specified move as the specified player.
 		# Return a new board with the result.  
 		if len(moveset) == 0:
-			raise InvalidMoveException(moveset, self)
+			raise InvalidMoveException(piece, moveset, self)
 
 		if type(moveset) is not list:
 			moveset = moveset.strip().split()
@@ -261,11 +275,11 @@ class CheckersBoard(object):
 			# Ensure multi-moves are jumps
 			if len(moveset) > 1:
 				if not self._isJump(piece, move):
-					raise InvalidMoveException(move, self)
+					raise InvalidMoveException(piece, move, self)
 
 			# Series of checks to ensure the move is valid
 			if not self.moveIsValid(piece, move, newBoard):
-				raise InvalidMoveException(move, self)
+				raise InvalidMoveException(piece, move, self)
 
 			prow, pcol = self._getPointFromToken(piece)
 			mrow, mcol = self._getPointFromToken(move) 
@@ -415,6 +429,8 @@ class CheckersRunner(object):
 
 				if self.board.isGameOver():
 					is_player_win = self.board.isWin()
+					break
+				elif is_player_win < 0:
 					break
 
 		if (not is_player_win) and self.board.isDraw():
