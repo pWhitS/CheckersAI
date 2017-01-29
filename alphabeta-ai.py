@@ -2,15 +2,23 @@ from checkers import *
 from util import *
 from multiprocessing import Pool
 
+
 VERY_VERBOSE = False
+
+WIN_SCORE = 1000
+LOSS_SCORE = -WIN_SCORE
+DRAW_SCORE = -900
 
 def basic_evaluate(board):
 	score = 0
+	p1count, p2count = board.getPieceCount()
 
 	if board.isGameOver():
-		return -1000
+		if board.getCurrentPlayerId() == 1:
+			return (LOSS_SCORE + p1count) - p2count
+		else:
+			return (LOSS_SCORE + p2count) - p1count
 
-	p1count, p2count = board.getPieceCount()
 	if board.getCurrentPlayerId() == 1:
 		score += p1count * 5
 		score -= p2count * 6
@@ -18,7 +26,7 @@ def basic_evaluate(board):
 		score += p2count * 5
 		score -= p1count * 6
 
-	colscore = [1, 1, 2, 4, 4, 2, 1, 1]
+	colscore = [1, 2, 2, 4, 4, 2, 2, 1]
 	for row in range(board.boardWidth):
 		for col in range(board.boardHeight):
 			if board.getCell(row, col) in board.getCurrentPlayerPieceIds():
@@ -136,9 +144,9 @@ def alpha_beta_search(board, depth, eval_fn,
 		if new_beta > alpha:
 			alpha = new_beta
 	
-	# No avaliable moves
+	# No avaliable moves. 
 	if alpha == NEG_INFINITY:
-		alpha = INFINITY
+		alpha = WIN_SCORE  # Evaluate as win for the previous player
 
 	return (alpha, beta)
 
@@ -172,7 +180,7 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 
 	# Player cannot move and must conceed the game. 
 	if best_move is None:
-		best_move = (-1000, ("-1-1", "-1-1"), board)
+		best_move = (LOSS_SCORE, ("-1-1", "-1-1"), board)
 
 	if verbose and depth < 15:
 		print("Depth:", depth, " -  ALPHA-BETA: Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
@@ -196,7 +204,7 @@ if __name__ == "__main__":
 	#run_game(basic_player_pd, basic_player_pd)
 	#run_game(ab_player_pd, basic_player_pd)
 
-	run_game(human_player, ab_player_pd)
+	run_game(ab_player_pd, ab_player_pd)
 
 
 
