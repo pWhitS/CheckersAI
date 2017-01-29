@@ -109,54 +109,6 @@ def get_moves_helper(board, move_depth=0):
 			pass
 
 
-def minimax_search(board, depth, eval_fn,
-				   get_next_moves_fn = get_moves_helper,
-				   is_terminal_fn = is_terminal):
-	if is_terminal_fn(depth, board):
-		return eval_fn(board)
-
-	best_val = None
-
-	for move, new_board in get_next_moves_fn(board):
-		val = -1 * minimax_search(new_board, depth-1, eval_fn,
-								  get_next_moves_fn,
-								  is_terminal_fn)
-
-		if best_val is None or val > best_val:
-			best_val = val
-
-	if best_val is None:
-		best_val = -1000
-
-	return best_val
-
-
-def minimax(board, depth, eval_fn = basic_evaluate,
-			get_next_moves_fn = get_moves_helper,
-			is_terminal_fn = is_terminal,
-			verbose = True):
-	best_val = None
-
-	for move, new_board in get_next_moves_fn(board):
-		val = -1 * minimax_search(new_board, depth-1, eval_fn,
-								  get_next_moves_fn,
-								  is_terminal_fn)
-		if VERY_VERBOSE:
-			print("Potential Move: ", move, "- Score:", val)
-
-		if best_val is None or val > best_val[0]:
-			best_val = (val, move, new_board)
-
-	# Player cannot move. Lose. 
-	if best_val is None:
-		best_val = (-1000, ("-1-1", "-1-1"), board)
-
-	if verbose and depth < 10:
-		print("Depth:", depth, " -  MINIMAX: Move:", best_val[1], "- Score:", best_val[0])
-
-	return best_val[1] #return the move
-
-
 # Recursive Alpha-Beta branching and pruning
 def alpha_beta_search(board, depth, eval_fn,
 					  parent_alpha, parent_beta,
@@ -184,6 +136,10 @@ def alpha_beta_search(board, depth, eval_fn,
 		if new_beta > alpha:
 			alpha = new_beta
 	
+	# No avaliable moves
+	if alpha == NEG_INFINITY:
+		alpha = INFINITY
+
 	return (alpha, beta)
 
 
@@ -194,7 +150,7 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 					  verbose = True):
 	alpha = NEG_INFINITY
 	beta = INFINITY
-	best_val = None
+	best_move = None
 
 	for move, new_board in get_next_moves_fn(board):
 		if alpha >= beta:
@@ -214,6 +170,10 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 			alpha = new_beta
 			best_move = (alpha, beta, move, new_board)
 
+	# Player cannot move and must conceed the game. 
+	if best_move is None:
+		best_move = (-1000, ("-1-1", "-1-1"), board)
+
 	if verbose and depth < 15:
 		print("Depth:", depth, " -  ALPHA-BETA: Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
 
@@ -224,14 +184,6 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 if __name__ == "__main__":
 	basic_evaluate = memoize(basic_evaluate)
 
-	basic_player = lambda board: minimax(board, depth=4, eval_fn=basic_evaluate)
-	# basic_deep_player = lambda board: minimax(board, depth=5, eval_fn=basic_evaluate)
-
-	basic_player_pd = lambda board: progressive_deepener(board, 
-														 search_fn=minimax,
-                                                         eval_fn=basic_evaluate,
-                                                       	 get_next_moves_fn=get_moves_helper,
-                                                       	 timeout=25)
 
 	ab_player = lambda board: alpha_beta(board, depth=4, eval_fn=basic_evaluate)
 
