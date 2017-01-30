@@ -37,6 +37,11 @@ def basic_evaluate(board):
 	return score
 
 
+@memoize
+def basic_eval_memoized(board):
+	return basic_evaluate(board)
+
+
 def is_terminal(depth, board):
 	return (depth <= 0) or board.isGameOver()
 
@@ -208,6 +213,9 @@ def alpha_beta_search_mp(board, depth, eval_fn,
 					     parent_alpha, parent_beta,
 					     get_next_moves_fn = get_moves_helper,
 					     is_terminal_fn = is_terminal):
+	# Use the memoized evaluator for each individual process
+	eval_fn = basic_eval_memoized
+
 	# Return board evaluation if end game or max depth is reached
 	if is_terminal_fn(depth, board):
 		abval = eval_fn(board)
@@ -288,7 +296,6 @@ def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
 if __name__ == "__main__":
 	#basic_evaluate = memoize(basic_evaluate)
 
-
 	ab_player = lambda board: alpha_beta(board, depth=4, eval_fn=basic_evaluate)
 
 	ab_player_pd = lambda board: progressive_deepener(board,
@@ -308,9 +315,13 @@ if __name__ == "__main__":
 	#run_game(basic_player_pd, basic_player_pd)
 	#run_game(ab_player_pd, basic_player_pd)
 
+	## Regular (with memoization) vs Multiprocessor (without memo) ##
 	#run_game(ab_player_pd, ab_player_pd)
+	run_game(mp_ab_player_pd, mp_ab_player_pd)
 
-	run_game(ab_player_pd, mp_ab_player_pd)
+
+	#run_game(ab_player_pd, mp_ab_player_pd)
+	#run_game(mp_ab_player_pd, ab_player_pd)
 
 
 
