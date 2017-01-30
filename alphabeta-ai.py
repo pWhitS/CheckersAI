@@ -3,7 +3,7 @@ from util import *
 from multiprocessing import Pool
 
 
-VERY_VERBOSE = True
+VERY_VERBOSE = False
 
 WIN_SCORE = 1000
 LOSS_SCORE = -WIN_SCORE
@@ -241,12 +241,14 @@ def alpha_beta_search_mp(board, depth, eval_fn,
 def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
 					 	 get_next_moves_fn = get_moves_helper,
 					  	 is_terminal_fn = is_terminal,
+					  	 num_procs = 6,
 					  	 verbose = True):
 	alpha = NEG_INFINITY
 	beta = INFINITY
 	best_move = None
 
-	ab_pool = Pool(processes=8)
+	# Default num_procs to 2 less than the number of cores
+	ab_pool = Pool(processes=num_procs) 
 	pool_args = []
 	move_list = []
 
@@ -258,6 +260,8 @@ def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
 	
 	# Start the multiprocessor, and store the returned values
 	vals_list = ab_pool.starmap(alpha_beta_search_mp, pool_args)
+	ab_pool.close()  # Allow the subprocesses to terminate quickly
+	ab_pool.join()  # Do not continue until all subprocesses finish
 	
 	# Find the highest scoring move
 	for i, vals in enumerate(vals_list):
@@ -295,12 +299,18 @@ if __name__ == "__main__":
 
 	mp_ab_player = lambda board: alpha_beta_multiproc(board, depth=5, eval_fn=basic_evaluate)
 
+	mp_ab_player_pd = lambda board: progressive_deepener(board,
+														 search_fn=alpha_beta_multiproc,
+													  	 eval_fn=basic_evaluate,
+													  	 get_next_moves_fn=get_moves_helper,
+													  	 timeout=15)
+
 	#run_game(basic_player_pd, basic_player_pd)
 	#run_game(ab_player_pd, basic_player_pd)
 
 	#run_game(ab_player_pd, ab_player_pd)
 
-	run_game(mp_ab_player, human_player)
+	run_game(ab_player_pd, mp_ab_player_pd)
 
 
 
