@@ -3,7 +3,7 @@ from util import *
 from multiprocessing import Pool
 
 
-VERY_VERBOSE = False
+VERY_VERBOSE = True
 
 WIN_SCORE = 1000
 LOSS_SCORE = -WIN_SCORE
@@ -250,26 +250,29 @@ def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
 	pool_args = []
 	move_list = []
 
+	# Collect the arguments for each process
 	for move, new_board in get_moves_multiproc_helper(board):
 		temp_arg = (new_board, depth-1, eval_fn, alpha, beta, get_next_moves_fn, is_terminal_fn)
 		pool_args.append(temp_arg)
-		move_list.append(move)
+		move_list.append(move)  # Keep track of the moves
 	
+	# Start the multiprocessor, and store the returned values
 	vals_list = ab_pool.starmap(alpha_beta_search_mp, pool_args)
 	
+	# Find the highest scoring move
 	for i, vals in enumerate(vals_list):
 		new_alpha, new_beta = (-vals[1], -vals[0])
 
-		if VERY_VERBOSE:
-			print("Potential Moswve: ", move_list[i], "- Score:", new_beta)
+		if verbose and VERY_VERBOSE:
+			print("Potential Move: ", move_list[i], "- Score:", new_beta)
 	
 		if new_beta > alpha:
 			alpha = new_beta
-			best_move = (alpha, beta, move_list[i], new_board)
+			best_move = (alpha, beta, move_list[i])
 
 	# Player cannot move and must conceed the game. 
 	if best_move is None:
-		best_move = (LOSS_SCORE, LOSS_SCORE, ("-1-1", "-1-1"), board)
+		best_move = (LOSS_SCORE, LOSS_SCORE, ("-1-1", "-1-1"))
 
 	if verbose and depth < 15:
 		print("Depth:", depth, " -  ALPHA-BETA: Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
@@ -288,7 +291,7 @@ if __name__ == "__main__":
 													  search_fn=alpha_beta,
 													  eval_fn=basic_evaluate,
 													  get_next_moves_fn=get_moves_helper,
-													  timeout=25)
+													  timeout=15)
 
 	mp_ab_player = lambda board: alpha_beta_multiproc(board, depth=5, eval_fn=basic_evaluate)
 
@@ -297,7 +300,7 @@ if __name__ == "__main__":
 
 	#run_game(ab_player_pd, ab_player_pd)
 
-	run_game(mp_ab_player, ab_player_pd)
+	run_game(mp_ab_player, human_player)
 
 
 
