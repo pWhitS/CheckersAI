@@ -70,7 +70,7 @@ def get_all_next_moves(board, move_depth):
 
 	first_order = [] # Single space moves don't apply for multiple jumps
 	second_order = [-2, 2]
-	# Allow single space moves for the first move
+	# Allow single space moves only for the first move
 	if move_depth == 0: 
 		first_order = [-1, 1]
 
@@ -106,7 +106,6 @@ def get_all_next_moves(board, move_depth):
 	return move_set
 
 
-
 def get_moves_helper(board, move_depth=0):
 	move_set = get_all_next_moves(board, move_depth)
 
@@ -115,6 +114,22 @@ def get_moves_helper(board, move_depth=0):
 			yield ((piece, move), board.doMove(piece, move))
 		except InvalidMoveException:
 			pass
+
+
+def get_moves_multiproc_helper(board, move_depth=0):
+	move_list = get_all_next_moves(board, move_depth)
+	yeild_list = []
+	temp_board = None
+
+	for piece, move in move_list:
+		try:
+			temp_board = board.doMove(piece, move)
+		except InvalidMoveException:
+			continue
+
+		yeild_list.append( ((piece, move), temp_board) )
+
+	return yeild_list
 
 
 # Recursive Alpha-Beta branching and pruning
@@ -188,9 +203,83 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 	return best_move[2]
 
 
+# Recursive Alpha-Beta branching and pruning
+def alpha_beta_search_mp(board, depth, eval_fn,
+					     parent_alpha, parent_beta,
+					     get_next_moves_fn = get_moves_helper,
+					     is_terminal_fn = is_terminal):
+	# Return board evaluation if end game or max depth is reached
+	if is_terminal_fn(depth, board):
+		abval = eval_fn(board)
+		return (abval, abval)
+
+	alpha = -parent_beta
+	beta = -parent_alpha
+
+	for move, new_board in get_next_moves_fn(board):
+		if alpha >= beta:
+			break
+
+		vals = alpha_beta_search_mp(new_board, depth-1, eval_fn,
+								    alpha, beta,
+								 	get_next_moves_fn,
+								 	is_terminal_fn)
+
+		new_alpha, new_beta = (-vals[1], -vals[0]) 
+
+		if new_beta > alpha:
+			alpha = new_beta
+	
+	# No avaliable moves. 
+	if alpha == NEG_INFINITY:
+		alpha = WIN_SCORE  # Evaluate as win for the previous player
+
+	return (alpha, beta)
+
+
+# Starts the recursive alpha-beta search tree
+def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
+					 	 get_next_moves_fn = get_moves_helper,
+					  	 is_terminal_fn = is_terminal,
+					  	 verbose = True):
+	alpha = NEG_INFINITY
+	beta = INFINITY
+	best_move = None
+
+	ab_pool = Pool(processes=8)
+	pool_args = []
+	move_list = []
+
+	for move, new_board in get_moves_multiproc_helper(board):
+		temp_arg = (new_board, depth-1, eval_fn, alpha, beta, get_next_moves_fn, is_terminal_fn)
+		pool_args.append(temp_arg)
+		move_list.append(move)
+	
+	vals_list = ab_pool.starmap(alpha_beta_search_mp, pool_args)
+	
+	for i, vals in enumerate(vals_list):
+		new_alpha, new_beta = (-vals[1], -vals[0])
+
+		if VERY_VERBOSE:
+			print("Potential Moswve: ", move_list[i], "- Score:", new_beta)
+	
+		if new_beta > alpha:
+			alpha = new_beta
+			best_move = (alpha, beta, move_list[i], new_board)
+
+	# Player cannot move and must conceed the game. 
+	if best_move is None:
+		best_move = (LOSS_SCORE, LOSS_SCORE, ("-1-1", "-1-1"), board)
+
+	if verbose and depth < 15:
+		print("Depth:", depth, " -  ALPHA-BETA: Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
+
+	return best_move[2]
+
+
 
 if __name__ == "__main__":
-	basic_evaluate = memoize(basic_evaluate)
+	#basic_evaluate = memoize(basic_evaluate)
 
 
 	ab_player = lambda board: alpha_beta(board, depth=4, eval_fn=basic_evaluate)
@@ -201,10 +290,14 @@ if __name__ == "__main__":
 													  get_next_moves_fn=get_moves_helper,
 													  timeout=25)
 
+	mp_ab_player = lambda board: alpha_beta_multiproc(board, depth=5, eval_fn=basic_evaluate)
+
 	#run_game(basic_player_pd, basic_player_pd)
 	#run_game(ab_player_pd, basic_player_pd)
 
-	run_game(ab_player_pd, ab_player_pd)
+	#run_game(ab_player_pd, ab_player_pd)
+
+	run_game(mp_ab_player, ab_player_pd)
 
 
 
