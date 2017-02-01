@@ -147,16 +147,12 @@ class CheckersBoard(object):
 		for col in range(self.boardWidth):
 			# Player 1, non-king piece
 			if board[0][col] == 1:
-				board[0][col] = 3
-				if verbose:
-					print("King Me! Player 1 %s  piece is Kinged!" % (self.board_symbol_mapping[3]))
-
+				board[0][col] = 3  # switch to king
+				
 			# Player 2, non-king piece
 			if board[7][col] == 2: 
-				board[7][col] = 4
-				if verbose:
-					print("King Me! Player 2 %s  piece is Kinged!" % (self.board_symbol_mapping[4]))
-
+				board[7][col] = 4  # switch to king
+			
 		return board
 
 
@@ -342,19 +338,32 @@ class CheckersBoard(object):
 		return CheckersBoard(self.getBoardArray(), self.getCurrentPlayerId(), self.drawCounter)
 
 
+	def getPieceConfig(self):
+		plist = [0, 0, 0, 0] # red, white, red king, white king
+
+		for i in range(self.boardHeight):
+			for j in range(self.boardWidth):
+				pid = self.getCell(i, j)
+				if pid == 0 or pid == 5:
+					continue
+				plist[pid-1] += 1
+
+		return plist
+
+
 	def getPieceCount(self):
-		white = 0 # Red
-		black = 0 # White
+		red = 0 
+		white = 0 
 
 		for i in range(self.boardHeight):
 			for j in range(self.boardWidth):
 				pid = self.getCell(i, j)
 				if pid in [1, 3]:
-					white += 1
+					red += 1
 				elif pid in [2, 4]:
-					black += 1
+					white += 1
 
-		return (white, black)
+		return (red, white)
 
 
 	def getAllPlayerPieces(self, playerid):
