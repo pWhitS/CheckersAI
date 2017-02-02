@@ -143,6 +143,10 @@ class CheckersBoard(object):
 		return self.boardArray[row][col]
 
 
+	def getDrawCounter(self):
+		return self.drawCounter
+
+
 	def kingMe(self, board, verbose=False):
 		for col in range(self.boardWidth):
 			# Player 1, non-king piece
