@@ -28,32 +28,64 @@ def piece_type_scorer(cur_player, p1_men, p1_kings, p2_men, p2_kings):
 	return pt_score
 
 
-def positional_scorer():
-	return 0
+def positional_scorer(board):
+	pscore = 0
+	colscore = [1, 2, 4, 5, 5, 4, 2, 1]
+
+	for row in range(board.boardWidth):
+		for col in range(board.boardHeight):
+			if board.getCell(row, col) in board.getCurrentPlayerPieceIds():
+				pscore += colscore[col]
+				if row == 3 or row == 4:
+					pscore += 5
+			elif board.getCell(row, col) in board.getOtherPlayerPieceIds():
+				pscore -= colscore[col]
+				if row == 3 or row == 4:
+					pscore += 5
+
+	return pscore
+
+
+def avaliable_moves(board):
+	move_orders = [[-1, 1], [-2, 2]]
+	num_valid_moves = 0
+	all_pieces = board.getAllPlayerPieces(board.getCurrentPlayerId())
+
+	# Count all possible moves from current position
+	for piece in all_pieces:
+		prow = piece[0]
+		pcol = piece[1]
+		for order in move_orders:
+			for i in order:
+				for j in order:
+					candidate_move_token = board._getTokenFromPoint( (prow+i, pcol+j) )
+					piece_token = board._getTokenFromPoint( (prow, pcol) )
+					try:
+						board.doMove(piece_token, candidate_move_token)
+					except InvalidMoveException:
+						continue
+					num_valid_moves += 1
+
+	return num_valid_moves
 
 
 def basic_evaluate(board):
 	score = 0
+
 	p1_men, p2_men, p1_kings, p2_kings = board.getPieceConfig()
 	p1_tot = p1_men + p1_kings
 	p2_tot = p2_men + p2_kings
+	num_possible_moves = avaliable_moves(board)
 
-	if board.isGameOver():
+	if board.isGameOver() or num_possible_moves == 0:
 		if board.getCurrentPlayerId() == 1:
-			return (LOSS_SCORE + p1_tot) - p2_tot
+			return (LOSS_SCORE - board.getDrawCounter()) + p2_tot
 		else:
-			return (LOSS_SCORE + p2_tot) - p1_tot
+			return (LOSS_SCORE - board.getDrawCounter()) + p1_tot
 
-	score += piece_type_scorer(board.getCurrentPlayerId, p1_men, p1_kings, p2_tot, p2_kings)
-	score += positional_scorer()
-
-	colscore = [1, 2, 3, 4, 4, 3, 2, 1]
-	for row in range(board.boardWidth):
-		for col in range(board.boardHeight):
-			if board.getCell(row, col) in board.getCurrentPlayerPieceIds():
-				score += colscore[col]
-			elif board.getCell(row, col) in board.getOtherPlayerPieceIds():
-				score += colscore[col]
+	score += num_possible_moves
+	score += piece_type_scorer(board.getCurrentPlayerId(), p1_men, p1_kings, p2_tot, p2_kings)
+	score += positional_scorer(board)
 
 	return score
 
@@ -91,7 +123,7 @@ def combine_move_sets(move_set_1, move_set_2):
 	return new_move_set
 
 
-def get_all_next_moves(board, move_depth):
+def get_all_next_moves(board, move_depth, recursive=True):
 	first_order = [] # Single space moves don't apply for multiple jumps
 	second_order = [-2, 2]
 	# Allow single space moves only for the first move
@@ -123,14 +155,15 @@ def get_all_next_moves(board, move_depth):
 		try:
 			new_board = board.doMove(move[0], [move[1]])
 			new_board.currentPlayer = board.currentPlayer
-			move_set = combine_move_sets(list(move_set), get_all_next_moves(new_board, move_depth+1))
+			if recursive:
+				move_set = combine_move_sets(list(move_set), get_all_next_moves(new_board, move_depth+1))
 		except InvalidMoveException:
 			continue
 	
 	return move_set
 
 
-def get_moves_helper(board, move_depth=0):
+def get_moves_helper(board, eval_fn, tree_depth, move_depth=0):
 	board_copy = board.copy()
 	move_set = get_all_next_moves(board_copy, move_depth)
 
@@ -141,6 +174,7 @@ def get_moves_helper(board, move_depth=0):
 			pass
 
 
+# This routine only works with the single process alpha-beta
 def get_ordered_moves_helper(board, eval_fn, tree_depth, move_depth=0):
 	board_copy = board.copy()
 	move_set = get_all_next_moves(board_copy, move_depth)
@@ -249,7 +283,7 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 
 	# Player cannot move and must conceed the game. 
 	if best_move is None:
-		best_move = (LOSS_SCORE, ("-1-1", "-1-1"), board)
+		best_move = (LOSS_SCORE, LOSS_SCORE, ("-1-1", "-1-1"), board)
 
 	if verbose and depth < 15:
 		print("Depth:", depth, " -  ALPHA-BETA: Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
@@ -272,7 +306,7 @@ def alpha_beta_search_mp(board, depth, eval_fn,
 	alpha = -parent_beta
 	beta = -parent_alpha
 
-	for move, new_board in get_next_moves_fn(board):
+	for move, new_board in get_next_moves_fn(board, eval_fn, depth):
 		if alpha >= beta:
 			break
 
@@ -344,7 +378,7 @@ def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
 if __name__ == "__main__":
 	#basic_evaluate = memoize(basic_evaluate)
 
-	ab_player = lambda board: alpha_beta(board, depth=4, eval_fn=basic_evaluate)
+	ab_player = lambda board: alpha_beta(board, depth=2, eval_fn=basic_evaluate)
 
 	ab_player_pd = lambda board: progressive_deepener(board,
 													  search_fn=alpha_beta,
@@ -360,7 +394,8 @@ if __name__ == "__main__":
 													  	 get_next_moves_fn=get_moves_helper,
 													  	 timeout=15)
 
-	run_game(ab_player_pd, human_player)
+	#run_game(ab_player, ab_player)
+	run_game(human_player, ab_player_pd)
 
 	## Regular (with memoization) vs Multiprocessor (without memo) ##
 	#run_game(ab_player_pd, ab_player_pd)
