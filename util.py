@@ -97,6 +97,26 @@ class memoize(object):
 
 
 
+class MultiMemoize(object):
+    '''
+    Basic caching for the top level process
+    - This will enable tree reordering with progressive deepening 
+
+    Simply access the hash table directy. 
+    Clear after each iteration
+
+    '''
+    def __init__(self):
+        self.multicache = {}
+
+    def clear(self):
+        self.multicache = {} 
+
+
+
+
+
+
 
 
 

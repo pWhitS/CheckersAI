@@ -12,7 +12,7 @@ DRAW_SCORE = -900
 
 def piece_type_scorer(cur_player, p1_men, p1_kings, p2_men, p2_kings):
 	pt_score = 0
-	multiplyer = 5
+	multiplyer = 2
 
 	if cur_player == 1:
 		pt_score += p1_men * multiplyer
@@ -30,18 +30,17 @@ def piece_type_scorer(cur_player, p1_men, p1_kings, p2_men, p2_kings):
 
 def positional_scorer(board):
 	pscore = 0
-	colscore = [1, 2, 4, 5, 5, 4, 2, 1]
 
+	# Prefer pieces in the middle of the board
+	matrix_score = [0, 1, 2, 2, 2, 2, 1, 0]
 	for row in range(board.boardWidth):
 		for col in range(board.boardHeight):
 			if board.getCell(row, col) in board.getCurrentPlayerPieceIds():
-				pscore += colscore[col]
-				if row == 3 or row == 4:
-					pscore += 5
+				pscore += matrix_score[row]
+				pscore += matrix_score[col]
 			elif board.getCell(row, col) in board.getOtherPlayerPieceIds():
-				pscore -= colscore[col]
-				if row == 3 or row == 4:
-					pscore += 5
+				pscore -= matrix_score[row]
+				pscore -= matrix_score[col]
 
 	return pscore
 
@@ -93,6 +92,16 @@ def basic_evaluate(board):
 @memoize
 def basic_eval_memoized(board):
 	return basic_evaluate(board)
+
+# Memoization for the top process
+memo = MultiMemoize()
+def multi_memo_eval_helper(board):
+	if board in memo.multicache:
+		return memo.multicache[board]
+	else:
+		val = basic_evaluate(board)
+		memo.multicache[board] = val
+		return val
 
 
 def is_terminal(depth, board):
@@ -202,7 +211,6 @@ def get_ordered_moves_helper(board, eval_fn, tree_depth, move_depth=0):
 			yield ((piece, move), bv[2])
 
 
-
 def get_moves_multiproc_helper(board, move_depth=0):
 	board_copy = board.copy()
 	move_list = get_all_next_moves(board_copy, move_depth)
@@ -296,7 +304,7 @@ def alpha_beta_search_mp(board, depth, eval_fn,
 					     parent_alpha, parent_beta,
 					     get_next_moves_fn = get_moves_helper,
 					     is_terminal_fn = is_terminal):
-	# Use the memoized evaluator for each individual process
+	# Use the memoized evaluator for each subprocess
 	eval_fn = basic_eval_memoized
 	# Return board evaluation if end game or max depth is reached
 	if is_terminal_fn(depth, board):
@@ -343,10 +351,10 @@ def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
 	move_list = []
 
 	# Collect the arguments for each process
-	for move, new_board in get_moves_multiproc_helper(board):
+	for move, new_board in get_next_moves_fn(board, multi_memo_eval_helper, depth):
 		temp_arg = (new_board, depth-1, eval_fn, alpha, beta, get_next_moves_fn, is_terminal_fn)
 		pool_args.append(temp_arg)
-		move_list.append(move)  # Keep track of the moves
+		move_list.append( (move, new_board) ) # Keep track of the moves and boards
 	
 	# Start the multiprocessor, and store the returned values
 	vals_list = ab_pool.starmap(alpha_beta_search_mp, pool_args)
@@ -356,13 +364,17 @@ def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
 	# Find the highest scoring move
 	for i, vals in enumerate(vals_list):
 		new_alpha, new_beta = (-vals[1], -vals[0])
+		new_move = move_list[i][0]
+		new_board = move_list[i][1]
+		# Cache the new_board score
+		memo.multicache[new_board] = new_beta
 
 		if verbose and VERY_VERBOSE:
-			print("Potential Move: ", move_list[i], "- Score:", new_beta)
-	
+			print("Potential Move: ", new_move, "- Score:", new_beta)
+
 		if new_beta > alpha:
 			alpha = new_beta
-			best_move = (alpha, beta, move_list[i])
+			best_move = (alpha, beta, new_move)
 
 	# Player cannot move and must conceed the game. 
 	if best_move is None:
@@ -391,11 +403,12 @@ if __name__ == "__main__":
 	mp_ab_player_pd = lambda board: progressive_deepener(board,
 														 search_fn=alpha_beta_multiproc,
 													  	 eval_fn=basic_evaluate,
-													  	 get_next_moves_fn=get_moves_helper,
+													  	 get_next_moves_fn=get_ordered_moves_helper,
 													  	 timeout=15)
 
 	#run_game(ab_player, ab_player)
-	run_game(human_player, ab_player_pd)
+	#run_game(human_player, ab_player_pd)
+
 
 	## Regular (with memoization) vs Multiprocessor (without memo) ##
 	#run_game(ab_player_pd, ab_player_pd)
@@ -405,6 +418,7 @@ if __name__ == "__main__":
 	#run_game(ab_player_pd, mp_ab_player_pd)
 	#run_game(mp_ab_player_pd, ab_player_pd)
 
+	run_game(mp_ab_player_pd, human_player)
 
 
 
