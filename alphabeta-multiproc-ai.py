@@ -173,7 +173,6 @@ def get_all_next_moves(board, move_depth, recursive=True):
 	return move_set
 
 
-# This routine only works with the single process alpha-beta
 def get_ordered_moves_helper(board, eval_fn, tree_depth, move_depth=0):
 	board_copy = board.copy()
 	move_set = get_all_next_moves(board_copy, move_depth)
