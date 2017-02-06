@@ -82,7 +82,7 @@ class CheckersBoard(object):
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
 			# Player 2, close win
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
-			# 					( 0, 5, 0, 5, 2, 5, 0, 5 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 2, 5, 0, 5, 2 ),
 			# 					( 2, 5, 0, 5, 2, 5, 1, 5 ),
 			# 					( 5, 2, 5, 0, 5, 1, 5, 2 ),
@@ -98,6 +98,16 @@ class CheckersBoard(object):
 			# 					( 0, 5, 0, 5, 2, 5, 2, 5 ),
 			# 					( 5, 2, 5, 4, 5, 0, 5, 1 ),
 			# 					( 4, 5, 4, 5, 0, 5, 4, 5 ), )
+			# White victory through opponent moves 
+			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 2, 5, 2, 5, 2, 5, 2, 5 ),
+			# 					( 5, 2, 5, 2, 5, 2, 5, 2 ),
+			# 					( 1, 5, 1, 5, 1, 5, 1, 5 ),
+			# 					( 5, 1, 5, 0, 5, 0, 5, 1 ),
+			# 					( 0, 5, 4, 5, 2, 5, 0, 5 ),
+			# 					( 5, 1, 5, 1, 5, 2, 5, 0 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
+
 		else:
 			# store an immutable copy
 			self.boardArray = tuple( map(tuple, _boardArray) )

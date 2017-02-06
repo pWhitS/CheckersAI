@@ -1,5 +1,6 @@
 from checkers import *
 from util import *
+from multiprocessing import Pool
 
 
 VERY_VERBOSE = False
@@ -93,6 +94,17 @@ def basic_eval_memoized(board):
 	return basic_evaluate(board)
 
 
+# Memoization for the top process
+memo = MultiMemoize()
+def multi_memo_eval_helper(board):
+	if board in memo.multicache:
+		return memo.multicache[board]
+	else:
+		val = basic_evaluate(board)
+		memo.multicache[board] = val
+		return val
+
+
 def is_terminal(depth, board):
 	return (depth <= 0) or board.isGameOver()
 
@@ -161,17 +173,6 @@ def get_all_next_moves(board, move_depth, recursive=True):
 	return move_set
 
 
-def get_moves_helper(board, eval_fn, tree_depth, move_depth=0):
-	board_copy = board.copy()
-	move_set = get_all_next_moves(board_copy, move_depth)
-
-	for piece, move in move_set:
-		try:
-			yield ((piece, move), board.doMove(piece, move))
-		except InvalidMoveException:
-			pass
-
-
 # This routine only works with the single process alpha-beta
 def get_ordered_moves_helper(board, eval_fn, tree_depth, move_depth=0):
 	board_copy = board.copy()
@@ -200,11 +201,41 @@ def get_ordered_moves_helper(board, eval_fn, tree_depth, move_depth=0):
 			yield ((piece, move), bv[2])
 
 
+def get_moves_multiproc_helper(board, move_depth=0):
+	board_copy = board.copy()
+	move_list = get_all_next_moves(board_copy, move_depth)
+	yield_list = []
+	temp_board = None
+
+	for piece, move in move_list:
+		try:
+			temp_board = board.doMove(piece, move)
+		except InvalidMoveException:
+			continue
+
+		yield_list.append( ((piece, move), temp_board) )
+
+	return yield_list
+
+
+def get_moves_helper(board, eval_fn, tree_depth, move_depth=0):
+	board_copy = board.copy()
+	move_set = get_all_next_moves(board_copy, move_depth)
+
+	for piece, move in move_set:
+		try:
+			yield ((piece, move), board.doMove(piece, move))
+		except InvalidMoveException:
+			pass
+
+
 # Recursive Alpha-Beta branching and pruning
-def alpha_beta_search(board, depth, eval_fn,
-					  parent_alpha, parent_beta,
-					  get_next_moves_fn = get_moves_helper,
-					  is_terminal_fn = is_terminal):
+def alpha_beta_search_mp(board, depth, eval_fn,
+					     parent_alpha, parent_beta,
+					     get_next_moves_fn = get_moves_helper,
+					     is_terminal_fn = is_terminal):
+	# Use the memoized evaluator for each subprocess
+	eval_fn = basic_eval_memoized
 	# Return board evaluation if end game or max depth is reached
 	if is_terminal_fn(depth, board):
 		abval = eval_fn(board)
@@ -217,10 +248,10 @@ def alpha_beta_search(board, depth, eval_fn,
 		if alpha >= beta:
 			break
 
-		vals = alpha_beta_search(new_board, depth-1, eval_fn,
-								 alpha, beta,
-								 get_next_moves_fn,
-								 is_terminal_fn)
+		vals = alpha_beta_search_mp(new_board, depth-1, eval_fn,
+								    alpha, beta,
+								 	get_next_moves_fn,
+								 	is_terminal_fn)
 
 		new_alpha, new_beta = (-vals[1], -vals[0]) 
 
@@ -229,41 +260,55 @@ def alpha_beta_search(board, depth, eval_fn,
 	
 	# No avaliable moves. 
 	if alpha == NEG_INFINITY:
-		alpha = eval_fn(board)  # Evaluate as loss for the current player
+		alpha = WIN_SCORE  # Evaluate as win for the previous player
 
 	return (alpha, beta)
 
 
 # Starts the recursive alpha-beta search tree
-def alpha_beta(board, depth, eval_fn = basic_evaluate,
-					  get_next_moves_fn = get_moves_helper,
-					  is_terminal_fn = is_terminal,
-					  verbose = False):
+def alpha_beta_multiproc(board, depth, eval_fn = basic_evaluate,
+					 	 get_next_moves_fn = get_moves_helper,
+					  	 is_terminal_fn = is_terminal,
+					  	 num_procs = 6,
+					  	 verbose = True):
 	alpha = NEG_INFINITY
 	beta = INFINITY
 	best_move = None
 
-	for move, new_board in get_next_moves_fn(board, eval_fn, depth):
-		if alpha >= beta:
-			break
+	# Default num_procs to 2 less than the number of cores
+	ab_pool = Pool(processes=num_procs) 
+	pool_args = []
+	move_list = []
 
-		vals = alpha_beta_search(new_board, depth-1, eval_fn,
-								 alpha, beta,
-								 get_next_moves_fn,
-								 is_terminal_fn)
-
+	# Collect the arguments for each process
+	for move, new_board in get_next_moves_fn(board, multi_memo_eval_helper, depth):
+		temp_arg = (new_board, depth-1, eval_fn, alpha, beta, get_next_moves_fn, is_terminal_fn)
+		pool_args.append(temp_arg)
+		move_list.append( (move, new_board) ) # Keep track of the moves and boards
+	
+	# Start the multiprocessor, and store the returned values
+	vals_list = ab_pool.starmap(alpha_beta_search_mp, pool_args)
+	ab_pool.close()  # Allow the subprocesses to terminate quickly
+	ab_pool.join()  # Do not continue until all subprocesses finish
+	
+	# Find the highest scoring move
+	for i, vals in enumerate(vals_list):
 		new_alpha, new_beta = (-vals[1], -vals[0])
+		new_move = move_list[i][0]
+		new_board = move_list[i][1]
+		# Cache the new_board score
+		memo.multicache[new_board] = new_beta
 
 		if verbose and VERY_VERBOSE:
-			print("Potential Move: ", move, "- Score:", new_beta)
+			print("Potential Move: ", new_move, "- Score:", new_beta)
 
 		if new_beta > alpha:
 			alpha = new_beta
-			best_move = (alpha, beta, move, new_board)
+			best_move = (alpha, beta, new_move)
 
 	# Player cannot move and must conceed the game. 
 	if best_move is None:
-		best_move = (LOSS_SCORE, LOSS_SCORE, ("-1-1", "-1-1"), board)
+		best_move = (LOSS_SCORE, LOSS_SCORE, ("-1-1", "-1-1"))
 
 	if verbose and depth < 15:
 		print("Depth:", depth, " -  ALPHA-BETA: Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
@@ -272,28 +317,16 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 
 
 
-
 if __name__ == "__main__":
-	#basic_evaluate = memoize(basic_evaluate)
+	mp_ab_player = lambda board: alpha_beta_multiproc(board, depth=3, eval_fn=basic_evaluate)
 
-	ab_player = lambda board: alpha_beta(board, depth=3, eval_fn=basic_evaluate)
-
-	ab_player_pd = lambda board: progressive_deepener(board,
-													  search_fn=alpha_beta,
-													  eval_fn=basic_eval_memoized,
-													  get_next_moves_fn=get_ordered_moves_helper,
-													  timeout=15)
+	mp_ab_player_pd = lambda board: progressive_deepener(board,
+														 search_fn=alpha_beta_multiproc,
+													  	 eval_fn=basic_evaluate,
+													  	 get_next_moves_fn=get_ordered_moves_helper,
+													  	 timeout=15)
 
 
-	#run_game(ab_player, ab_player)
-	#run_game(human_player, ab_player_pd)
-
-	#run_game(ab_player_pd, ab_player_pd)
-
-	run_game(ab_player, ab_player)
-
-
-
-
+	run_game(mp_ab_player, mp_ab_player)
 
 
