@@ -268,7 +268,7 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 		best_move = (LOSS_SCORE, LOSS_SCORE, ("-1-1", "-1-1"), board)
 
 	if verbose and depth < 15:
-		print("Depth:", depth, " -  ALPHA-BETA: Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
+		print("Depth:", depth, " -  ALPHA-BETA  Move:", str(best_move[2]), "- Rating:", str(best_move[0]))
 
 	return best_move[2]
 
