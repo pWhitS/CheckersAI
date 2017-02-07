@@ -7,6 +7,8 @@ from time import time
 from AlphaBetaAI import *
 
 
+VERY_VERBOSE = False
+
 class Node():
 
 	def __init__(self, _board, _play, _parent=None, _wins=0, _playouts=0, _nextlist=None):
@@ -26,6 +28,9 @@ class Node():
 
 	def copy(self):
 		return Node(self.board, self.play, self.parent, self.wins, self.playouts, self.nextlist)
+
+	def ratio(self):
+		return str(self.wins) + "/" + str(self.playouts)
 
 	def __str__(self):
 		rstr = "\n"
@@ -120,8 +125,8 @@ def playlist_to_generator(board, play_list):
 			pass	
 
 
-def is_terminal(node, num_moves):
-	return node.board.isGameOver() or (num_moves == 0)
+def is_terminal(node):
+	return node.board.isGameOver()
 
 
 def propigate_wins(cur_node):
@@ -156,12 +161,13 @@ def mcts_playout(root_node, get_next_moves_fn):
 	cur_node = root_node
 	cur_node.playouts += 1
 	depth = 0
-	next_moves = get_next_moves_fn(cur_node.board, 0)
 	is_forced_loss = False
 
-	while not is_terminal(cur_node, len(next_moves)):
+	while not is_terminal(cur_node):
 		# Move has not been extended
 		if len(cur_node.nextlist) == 0:
+			next_moves = get_next_moves_fn(cur_node.board, 0)
+
 			for play, new_board in playlist_to_generator(cur_node.board, next_moves):
 				new_node = Node(new_board, play, cur_node)
 				cur_node.append_leaf(new_node)
@@ -190,8 +196,6 @@ def mcts_playout(root_node, get_next_moves_fn):
 		cur_node.playouts += 1
 		depth += 1
 
-		if len(cur_node.nextlist) == 0:
-			next_moves = get_next_moves_fn(cur_node.board, 0)
 
 	#print(depth)
 	#print(root_node)
@@ -216,23 +220,17 @@ def monte_carlo_search(board, get_next_moves_fn, timeout=10, verbose=True):
 
 	end_time = time() + timeout
 	latest_root = root_node.copy()
-	i = 0
+	iters = 0
 
 	while time() < end_time:
 		mcts_playout(root_node, get_next_moves_fn)
 		latest_root = root_node.copy()
-		i += 1
+		iters += 1
 
-	print("iters:", i)
-	print(latest_root)
-	print(latest_root.nextlist)
-
-
-	# for i in range(iterations):
-	# 	mcts_playout(root_node, get_next_moves_fn)
-
-	# print(root_node)
-	# print(root_node.nextlist)
+	if verbose and VERY_VERBOSE:
+		print("iters:", iters)
+		print(latest_root)
+		print(latest_root.nextlist)
 
 	wmax = 0
 	wcur = 0
@@ -243,12 +241,26 @@ def monte_carlo_search(board, get_next_moves_fn, timeout=10, verbose=True):
 			wmax = wcur
 			max_node = node
 
+	if verbose:
+		print("Iterations:", iters, " -  MCTS-UCT  Move:", str(max_node.play), "- Ratio:", max_node.ratio())
+
 	return max_node.play
 
 	
-		
+def double_up(board):
+	ai_type = randint(0,1)
 
-	
+	if ai_type == 0:
+		print("MCTS")
+		return monte_carlo_search(board, get_all_next_moves, timeout=15)
+	else:
+		print("Alpha-Beta")
+		return progressive_deepener(board,
+									  search_fn=alpha_beta,
+									  eval_fn=basic_eval_memoized,
+									  get_next_moves_fn=get_ordered_moves_helper,
+									  timeout=15)
+
 
 
 
@@ -260,9 +272,11 @@ if __name__ == "__main__":
 													  search_fn=alpha_beta,
 													  eval_fn=basic_eval_memoized,
 													  get_next_moves_fn=get_ordered_moves_helper,
-													  timeout=5)
+													  timeout=15)
+	dp = lambda board: double_up(board)
 
-	run_game(ab_player_pd, mcts_player)
+
+	run_game(ab_player_pd, dp)
 
 
 
