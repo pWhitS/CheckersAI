@@ -50,7 +50,7 @@ class CheckersBoard(object):
 							 4: unicodedata.lookup("LARGE CIRCLE"), #king 'black' piece
 							 5: unicodedata.lookup("BLACK LARGE SQUARE")} 
 
-	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=100):
+	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=40):
 		if _boardArray is None:
 			# Normal Starting Board
 			self.boardArray = ( ( 5, 2, 5, 2, 5, 2, 5, 2 ),
@@ -90,14 +90,14 @@ class CheckersBoard(object):
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 4, 5, 0, 5, 0, 5, 0, 5 ), )
 			# Almost certain draw
-			# self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
-			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
-			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
-			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
-			# 					( 5, 1, 5, 0, 5, 0, 5, 0 ),
-			# 					( 0, 5, 0, 5, 2, 5, 2, 5 ),
-			# 					( 5, 2, 5, 4, 5, 0, 5, 1 ),
-			# 					( 4, 5, 4, 5, 0, 5, 4, 5 ), )
+			self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
+								( 0, 5, 0, 5, 0, 5, 0, 5 ),
+								( 5, 0, 5, 0, 5, 0, 5, 0 ),
+								( 0, 5, 0, 5, 0, 5, 0, 5 ),
+								( 5, 1, 5, 0, 5, 0, 5, 0 ),
+								( 0, 5, 0, 5, 2, 5, 2, 5 ),
+								( 5, 2, 5, 4, 5, 0, 5, 1 ),
+								( 4, 5, 4, 5, 0, 5, 4, 5 ), )
 			# White victory through opponent moves 
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 2, 5, 2, 5, 2, 5, 2, 5 ),
