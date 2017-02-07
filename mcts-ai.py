@@ -2,6 +2,7 @@ from checkers import *
 from util import *
 from random import randint
 from math import sqrt, log
+from time import time
 
 from AlphaBetaAI import *
 
@@ -17,9 +18,14 @@ class Node():
 		self.parent = _parent
 		if _nextlist is None:
 			self.nextlist = []
+		else:
+			self.nextlist = _nextlist
 
 	def append_leaf(self, node):
 		self.nextlist.append(node)
+
+	def copy(self):
+		return Node(self.board, self.play, self.parent, self.wins, self.playouts, self.nextlist)
 
 	def __str__(self):
 		rstr = "\n"
@@ -203,16 +209,30 @@ def mcts_playout(root_node, get_next_moves_fn):
 	
 	
 
-def monte_carlo_search(board, get_next_moves_fn, iterations=1500, verbose=True):
+def monte_carlo_search(board, get_next_moves_fn, timeout=10, verbose=True):
 	root_node = Node(board, (None, None))
 
 	next_moves = get_next_moves_fn(board, 0)
 
-	for i in range(iterations):
-		mcts_playout(root_node, get_next_moves_fn)
+	end_time = time() + timeout
+	latest_root = root_node.copy()
+	i = 0
 
-	print(root_node)
-	print(root_node.nextlist)
+	while time() < end_time:
+		mcts_playout(root_node, get_next_moves_fn)
+		latest_root = root_node.copy()
+		i += 1
+
+	print("iters:", i)
+	print(latest_root)
+	print(latest_root.nextlist)
+
+
+	# for i in range(iterations):
+	# 	mcts_playout(root_node, get_next_moves_fn)
+
+	# print(root_node)
+	# print(root_node.nextlist)
 
 	wmax = 0
 	wcur = 0
