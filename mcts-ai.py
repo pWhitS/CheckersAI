@@ -8,14 +8,15 @@ from AlphaBetaAI import *
 
 class Node():
 
-	def __init__(self, _board, _play, _parent=None):
+	def __init__(self, _board, _play, _parent=None, _wins=0, _playouts=0, _nextlist=None):
 		self.board = _board
 		self.play = _play
 		self.currentPlayerId = self.board.getCurrentPlayerId()
-		self.wins = 0
-		self.playouts = 0
+		self.wins = _wins
+		self.playouts = _playouts
 		self.parent = _parent
-		self.nextlist = []
+		if _nextlist is None:
+			self.nextlist = []
 
 	def append_leaf(self, node):
 		self.nextlist.append(node)
