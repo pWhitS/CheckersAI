@@ -167,19 +167,18 @@ def mcts_playout(root_node, get_next_moves_fn):
 			midx = randint(0, len(cur_node.nextlist)-1)
 			cur_node = cur_node.nextlist[midx]
 		else:
-			#cur_node = cur_node.nextlist[randint(0, len(cur_node.nextlist)-1)]
 			zero_playout_list = []
 			for i, n in enumerate(cur_node.nextlist):
 				if n.playouts == 0:
 					zero_playout_list.append(i)
 
 			if len(zero_playout_list) > 0:
+				# Pick at random, if never before extended
 				zero_idx = zero_playout_list[randint(0, len(zero_playout_list)-1)]
 				cur_node = cur_node.nextlist[zero_idx]
-			else:
-				# Use a biased random choice
-				idx = get_ucb_max(cur_node)
-				cur_node = cur_node.nextlist[idx]
+			else: 
+				# Use a biased random choice. (UCB1-TUNED Monte-Carlo)
+				cur_node = get_ucb_max(cur_node)
 
 		cur_node.playouts += 1
 		depth += 1
