@@ -4,7 +4,7 @@ from util import *
 
 VERY_VERBOSE = False
 
-WIN_SCORE = 1000
+WIN_SCORE = 1024  # 1000 + maximum piece type score
 LOSS_SCORE = -WIN_SCORE
 DRAW_SCORE = -900
 
@@ -71,18 +71,20 @@ def basic_evaluate(board):
 	score = 0
 
 	p1_men, p2_men, p1_kings, p2_kings = board.getPieceConfig()
-	p1_tot = p1_men + p1_kings
-	p2_tot = p2_men + p2_kings
 	num_possible_moves = avaliable_moves(board)
 
-	if board.isGameOver() or num_possible_moves == 0:
+	if board.isGameOver() or (num_possible_moves == 0):
+		# Draw counter runs out
+		if board.isDraw():
+			return DRAW_SCORE
+
 		if board.getCurrentPlayerId() == 1:
-			return (LOSS_SCORE - board.getDrawCounter()) + p2_tot
+			return (LOSS_SCORE - board.getDrawCounter()) + (p2_men + p2_kings)
 		else:
-			return (LOSS_SCORE - board.getDrawCounter()) + p1_tot
+			return (LOSS_SCORE - board.getDrawCounter()) + (p1_men + p1_kings)
 
 	score += num_possible_moves
-	score += piece_type_scorer(board.getCurrentPlayerId(), p1_men, p1_kings, p2_tot, p2_kings)
+	score += piece_type_scorer(board.getCurrentPlayerId(), p1_men, p1_kings, p2_men, p2_kings)
 	score += positional_scorer(board)
 
 	return score
@@ -238,7 +240,7 @@ def alpha_beta_search(board, depth, eval_fn,
 def alpha_beta(board, depth, eval_fn = basic_evaluate,
 					  get_next_moves_fn = get_moves_helper,
 					  is_terminal_fn = is_terminal,
-					  verbose = False):
+					  verbose = True):
 	alpha = NEG_INFINITY
 	beta = INFINITY
 	best_move = None
