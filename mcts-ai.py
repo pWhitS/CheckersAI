@@ -1,6 +1,9 @@
 from checkers import *
 from util import *
 from random import randint
+from math import sqrt, log
+
+from AlphaBetaAI import *
 
 
 class Node():
@@ -115,11 +118,31 @@ def is_terminal(node, num_moves):
 
 
 def propigate_wins(cur_node):
-
+	cur_node.wins += 1
 	while cur_node.parent != None and cur_node.parent.parent != None:
 		parent = cur_node.parent
-		cur_node = cur_node.parent.parent		
+		cur_node = cur_node.parent.parent
+		cur_node.wins += 1	
+
 		
+def get_ucb_max(cur_node):
+	# UCB Formula: 
+	# ri + sqrt(((ln P) / pi) * min(0.25, (ri - ri^2 + sqrt(2 * (ln P) / pi))))
+	ucb_max = 0
+	ucb_cur = 0
+	max_node = cur_node.nextlist[0]
+
+	for i, candidate_node in enumerate(cur_node.nextlist):
+		ri = candidate_node.wins / float(candidate_node.playouts)
+		P = cur_node.playouts # parent of candidate_node
+		pi = candidate_node.playouts
+
+		ucb_cur = ri + sqrt(log(P)/pi) * min(0.25, (ri - ri**2 + sqrt(2*log(P) / pi)))
+		if ucb_cur > ucb_max:
+			ucb_max = ucb_cur
+			max_node = candidate_node
+
+	return max_node
 
 
 def mcts_playout(root_node, get_next_moves_fn):
@@ -127,6 +150,7 @@ def mcts_playout(root_node, get_next_moves_fn):
 	cur_node.playouts += 1
 	depth = 0
 	next_moves = get_next_moves_fn(cur_node.board, 0)
+	is_forced_loss = False
 
 	while not is_terminal(cur_node, len(next_moves)):
 		# Move has not been extended
@@ -135,44 +159,73 @@ def mcts_playout(root_node, get_next_moves_fn):
 				new_node = Node(new_board, play, cur_node)
 				cur_node.append_leaf(new_node)
 
+			# This is a loss for the current player
+			if len(cur_node.nextlist) == 0:
+				is_forced_loss = True
+				break
+
 			midx = randint(0, len(cur_node.nextlist)-1)
 			cur_node = cur_node.nextlist[midx]
-
-			next_moves = get_next_moves_fn(cur_node.board, 0)
 		else:
-			cur_node = cur_node.nextlist[randint(0, len(cur_node.nextlist)-1)]
+			#cur_node = cur_node.nextlist[randint(0, len(cur_node.nextlist)-1)]
+			zero_playout_list = []
+			for i, n in enumerate(cur_node.nextlist):
+				if n.playouts == 0:
+					zero_playout_list.append(i)
 
-			# zero_playout_list = []
-			# for i, n in enumerate(cur_node.nextlist):
-			# 	if n.playouts == 0:
-			# 		zero_playout_list.append(i)
-
-			# if len(zero_playout_list) > 0:
-			# 	zero_idx = zero_playout_list[randint(0, len(zero_playout_list)-1)]
-			# 	cur_node = cur_node.nextlist[zero_idx]
-			# else:
-			# 	# use biased random to chose node
-			# 	pass
+			if len(zero_playout_list) > 0:
+				zero_idx = zero_playout_list[randint(0, len(zero_playout_list)-1)]
+				cur_node = cur_node.nextlist[zero_idx]
+			else:
+				# Use a biased random choice
+				idx = get_ucb_max(cur_node)
+				cur_node = cur_node.nextlist[idx]
 
 		cur_node.playouts += 1
 		depth += 1
 
-	print(cur_node.board)
-	#if cur_node.board.isWin():
-	propigate_wins(cur_node)
-	print(cur_node)
-	print(depth)
+		if len(cur_node.nextlist) == 0:
+			next_moves = get_next_moves_fn(cur_node.board, 0)
+
+	#print(depth)
+	#print(root_node)
+	winner = cur_node.board.isWin()
+	if winner:
+		#print("WIN!", "depth:", depth, "- player:", winner)
+		#print(cur_node.board)
+		propigate_wins(cur_node)
+
+	elif is_forced_loss:
+		#print("WIN!", "depth:", depth-1, "player:", cur_node.parent.board.getCurrentPlayerId())
+		#print(cur_node.parent.board)
+		propigate_wins(cur_node)
 
 	
 	
 
-def monte_carlo_search(board, get_next_moves_fn, iter=10000, verbose=True):
+def monte_carlo_search(board, get_next_moves_fn, iterations=1500, verbose=True):
 	root_node = Node(board, (None, None))
 
 	next_moves = get_next_moves_fn(board, 0)
 
-	mcts_playout(root_node, get_next_moves_fn)
+	for i in range(iterations):
+		mcts_playout(root_node, get_next_moves_fn)
+
 	print(root_node)
+	print(root_node.nextlist)
+
+	wmax = 0
+	wcur = 0
+	max_node = root_node.nextlist[0]
+	for i, node in enumerate(root_node.nextlist):
+		wcur = node.wins
+		if wcur > wmax:
+			wmax = wcur
+			max_node = node
+
+	return max_node.play
+
+	
 		
 
 	
@@ -183,7 +236,13 @@ if __name__ == "__main__":
 
 	mcts_player = lambda board: monte_carlo_search(board, get_all_next_moves)
 
-	run_game(mcts_player, human_player)
+	ab_player_pd = lambda board: progressive_deepener(board,
+													  search_fn=alpha_beta,
+													  eval_fn=basic_eval_memoized,
+													  get_next_moves_fn=get_ordered_moves_helper,
+													  timeout=5)
+
+	run_game(ab_player_pd, mcts_player)
 
 
 
