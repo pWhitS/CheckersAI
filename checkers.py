@@ -50,7 +50,7 @@ class CheckersBoard(object):
 							 4: unicodedata.lookup("LARGE CIRCLE"), #king 'black' piece
 							 5: unicodedata.lookup("BLACK LARGE SQUARE")} 
 
-	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=40):
+	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=100):
 		if _boardArray is None:
 			# Normal Starting Board
 			self.boardArray = ( ( 5, 2, 5, 2, 5, 2, 5, 2 ),
@@ -324,7 +324,7 @@ class CheckersBoard(object):
 				jrow, jcol = self._isJump(piece, move) 
 				newBoard[jrow][jcol] = 0
 
-			piece = self._getTokenFromPoint((mrow, mcol))
+			piece = self._getTokenFromPoint( (mrow, mcol) )
 
 		#Check for new Kings
 		newBoard = self.kingMe(newBoard)
@@ -387,6 +387,27 @@ class CheckersBoard(object):
 					white += 1
 
 		return (red, white)
+
+
+	def getPieceLocations(self, reqToken=False):
+		pdict = {1: [], 2: []}
+
+		for i in range(self.boardHeight):
+			for j in range(self.boardWidth):
+				pid = self.getCell(i, j)
+				if pid not in [0, 5]:
+					loc = (i, j)
+					if reqToken:
+						loc = _getTokenFromPoint(loc)
+				else:
+					continue
+
+				if pid in [1, 3]:
+					pdict[1].append(loc)
+				elif pid in [2, 4]:
+					pdict[2].append(loc)
+
+		return pdict
 
 
 	def getAllPlayerPieces(self, playerid):
