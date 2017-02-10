@@ -50,7 +50,7 @@ class CheckersBoard(object):
 							 4: unicodedata.lookup("LARGE CIRCLE"), #king 'black' piece
 							 5: unicodedata.lookup("BLACK LARGE SQUARE")} 
 
-	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=100):
+	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=40):
 		if _boardArray is None:
 			# Normal Starting Board
 			self.boardArray = ( ( 5, 2, 5, 2, 5, 2, 5, 2 ),
@@ -108,14 +108,14 @@ class CheckersBoard(object):
 			# 					( 5, 1, 5, 1, 5, 2, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
 			# Tricky finish
-			self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
-								( 0, 5, 0, 5, 0, 5, 0, 5 ),
-								( 5, 0, 5, 0, 5, 0, 5, 0 ),
-								( 2, 5, 4, 5, 0, 5, 2, 5 ),
-								( 5, 0, 5, 0, 5, 0, 5, 0 ),
-								( 0, 5, 0, 5, 0, 5, 0, 5 ),
-								( 5, 2, 5, 0, 5, 0, 5, 2 ),
-								( 4, 5, 0, 5, 0, 5, 0, 5 ), )
+			# self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
+			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 2, 5, 4, 5, 0, 5, 2, 5 ),
+			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
+			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
+			# 					( 5, 2, 5, 0, 5, 0, 5, 2 ),
+			# 					( 4, 5, 0, 5, 0, 5, 0, 5 ), )
 
 		else:
 			# store an immutable copy
@@ -323,6 +323,7 @@ class CheckersBoard(object):
 			if self._isJump(piece, move):
 				jrow, jcol = self._isJump(piece, move) 
 				newBoard[jrow][jcol] = 0
+				self.drawCounter = 40
 
 			piece = self._getTokenFromPoint( (mrow, mcol) )
 
