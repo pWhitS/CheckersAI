@@ -1,5 +1,6 @@
 from checkers import *
 from util import *
+from math import sqrt
 
 
 VERY_VERBOSE = False
@@ -67,6 +68,45 @@ def avaliable_moves(board):
 	return num_valid_moves
 
 
+def euclidean_distance(p1, p2):
+	return sqrt( (p1[0] - p2[0])**2 + (p1[1] - p2[1])**2 )
+
+# Computer an aggression factor scaled on player advantage
+# If no advantage exists, aggression == 0
+def aggression_scorer(board, p1_men, p1_kings, p2_men, p2_kings):
+	agro_score = 0
+	total_pieces = p1_men + p1_kings + p2_men + p2_kings
+
+	if total_pieces >= 12:
+		return agro_score # no aggression bonus
+
+	total_p1 = p1_men + p1_kings
+	total_p2 = p2_men + p2_kings
+
+	advantage = total_p1 - total_p2 # total piece advantage
+	advantage += p1_kings - p2_kings # king advantage is double counted
+
+	if advantage > 0 and board.getCurrentPlayerId() == 2:
+		return agro_score
+	if advantage < 0 and board.getCurrentPlayerId() == 1:
+		return agro_score
+
+	piece_locations = board.getPieceLocations()	
+	p1list = piece_locations[1]
+	p2list = piece_locations[2]
+
+	aggregate_distance = 0
+	for p1 in p1list:
+		for p2 in p2list:
+			aggregate_distance += round(euclidean_distance(p1, p2))
+
+	average_distance = aggregate_distance / total_pieces
+	agro_score = abs(advantage * (total_pieces / average_distance))
+
+	# print("agro:", agro_score)
+	return round(agro_score) 
+
+
 def basic_evaluate(board):
 	score = 0
 
@@ -86,6 +126,7 @@ def basic_evaluate(board):
 	score += num_possible_moves
 	score += piece_type_scorer(board.getCurrentPlayerId(), p1_men, p1_kings, p2_men, p2_kings)
 	score += positional_scorer(board)
+	score += aggression_scorer(board, p1_men, p1_kings, p2_men, p2_kings)
 
 	return score
 
@@ -248,7 +289,7 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 	for move, new_board in get_next_moves_fn(board, eval_fn, depth):
 		if alpha >= beta:
 			break
-
+		#print(move)
 		vals = alpha_beta_search(new_board, depth-1, eval_fn,
 								 alpha, beta,
 								 get_next_moves_fn,
@@ -278,13 +319,13 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 if __name__ == "__main__":
 	#basic_evaluate = memoize(basic_evaluate)
 
-	ab_player = lambda board: alpha_beta(board, depth=3, eval_fn=basic_evaluate)
+	ab_player = lambda board: alpha_beta(board, depth=4, eval_fn=basic_evaluate)
 
 	ab_player_pd = lambda board: progressive_deepener(board,
 													  search_fn=alpha_beta,
 													  eval_fn=basic_eval_memoized,
 													  get_next_moves_fn=get_ordered_moves_helper,
-													  timeout=15)
+													  timeout=5)
 
 
 	#run_game(ab_player, ab_player)
@@ -292,7 +333,7 @@ if __name__ == "__main__":
 
 	#run_game(ab_player_pd, ab_player_pd)
 
-	run_game(ab_player, ab_player)
+	run_game(ab_player_pd, ab_player_pd)
 
 
 
