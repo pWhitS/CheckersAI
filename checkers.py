@@ -166,6 +166,10 @@ class CheckersBoard(object):
 		return self.drawCounter
 
 
+	def resetDrawCounter(self, _drawCounter=40):
+		self.drawCounter = _drawCounter
+
+
 	def kingMe(self, board, verbose=False):
 		for col in range(self.boardWidth):
 			# Player 1, non-king piece
@@ -323,7 +327,7 @@ class CheckersBoard(object):
 			if self._isJump(piece, move):
 				jrow, jcol = self._isJump(piece, move) 
 				newBoard[jrow][jcol] = 0
-				self.drawCounter = 40
+				self.resetDrawCounter()
 
 			piece = self._getTokenFromPoint( (mrow, mcol) )
 
@@ -483,7 +487,7 @@ class CheckersRunner(object):
 						print("\nPlayer %s %s  - Move: %s" % (pid, str(symbol), new_move))  
 
 						game_piece, game_move = new_move
-						if game_move == "-1-1":
+						if game_move == "-1-1" or game_piece == "-1-1":
 							is_player_win = int("-%s" % (str(pid)))
 						else:							
 							self.board = self.board.doMove(game_piece, game_move)
