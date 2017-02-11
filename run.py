@@ -16,7 +16,7 @@ from MonteCarloAI import *
 
 # BASIC AI PLAYERS
 # Anything more than 3 is risky (very slow) in the mid game...
-basic_player = lambda board: alpha_beta(board, depth=3, eval_fn=basic_evaluate)
+basic_player = lambda board: alpha_beta(board, depth=4, eval_fn=basic_evaluate)
 
 # Cuts off search at timeout
 progressive_player = lambda board: progressive_deepener(board,
