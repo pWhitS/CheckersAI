@@ -14,9 +14,9 @@ The AI player moves on its own. You just have to wait for it to finish thinking.
 
 For human players, when you are done thinking, first select the piece you want to move, then select the move location. Standard checkers rules apply. <br>
 <br>
-To select a piece or a move location input a column-row pair, such as: A5, C7, H6, or D0. You will be prompted for each as shown below. 
+To select a piece or a move location input a column-row pair, such as: <i>A5, C7, H6, or D0</i>. You will be prompted for each as shown below. 
 <br>
-![](https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/start.png | width=500)
+<img src="https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/start.png" height=35% width=35%/>
 
 After each move, the updated board is printed. 
 
