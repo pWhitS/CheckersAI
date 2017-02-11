@@ -8,7 +8,14 @@ Download this repository:
 git clone https://github.com/pWhitS/CheckersAI.git
 ```
 Or download the ZIP file above and extract it.
-<br><br>
+<br>
+
+Run the game in a terminal simple by using:
+```
+$ python run.py
+```
+The game is setup to run by default as, <i>Human player vs. AI player<i>
+<br>
 
 <b>How to Play:</b> <br>
 The AI player moves on its own. You just have to wait for it to finish thinking. <br>
