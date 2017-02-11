@@ -16,7 +16,7 @@ For human players, when you are done thinking, first select the piece you want t
 <br>
 To select a piece or a move location input a column-row pair, such as: A5, C7, H6, or D0. You will be prompted for each as shown below. 
 <br>
-![alt tag](https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/start.png = 500x500)
+![alt tag](https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/start.png =500x500)
 
 After each move, the updated board is printed. 
 
