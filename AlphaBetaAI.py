@@ -101,7 +101,7 @@ def aggression_scorer(board, p1_men, p1_kings, p2_men, p2_kings):
 	aggregate_distance = 0
 	for p1 in p1list:
 		for p2 in p2list:
-			aggregate_distance += round(euclidean_distance(p1, p2))
+			aggregate_distance += euclidean_distance(p1, p2)
 
 	average_distance = aggregate_distance / total_pieces
 	agro_score = abs(advantage * (total_pieces / average_distance))
