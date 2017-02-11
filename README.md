@@ -19,13 +19,13 @@ To select a piece or a move location input a column-row pair, such as: <i>A5, C7
 <br>
 <img src="https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/start.png" height=35% width=35%/>
 
-After each move, the updated board is printed. <br><br>
+After each move, the updated board is printed. <br>
 
-A jump can be performed by simply selecting the location beyond the jump piece. For example: D4 to B2, as in the example below. Also, multiple jumps of abitrary length can be acheived by inputing multiple, space delimited, move locations. An example is shown below as well. <br><br>
+A jump can be performed by simply selecting the location beyond the jump piece. For example: D4 to B2, as in the example below. Also, multiple jumps of abitrary length can be acheived by inputing multiple, space delimited, move locations. An example is shown below as well. <br>
 
 <b>Single Jump:</b> <br>
 <img src="https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/jump.png" height=35% width=35%/>
-<br><br>
+<br>
 
 <b>Multiple (Triple) Jump: </b>  <br>
 <img src="https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/triple_jump.png" height=35% width=35%/>
