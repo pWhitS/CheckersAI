@@ -50,7 +50,7 @@ class CheckersBoard(object):
 							 4: unicodedata.lookup("LARGE CIRCLE"), #king 'black' piece
 							 5: unicodedata.lookup("BLACK LARGE SQUARE")} 
 
-	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=40):
+	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=40, _moveCounter=0):
 		if _boardArray is None:
 			# Normal Starting Board
 			self.boardArray = ( ( 5, 2, 5, 2, 5, 2, 5, 2 ),
@@ -89,7 +89,7 @@ class CheckersBoard(object):
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 4, 5, 0, 5, 0, 5, 0, 5 ), )
-			# Almost certain draw
+			# Possible draw
 			# self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
 			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
@@ -98,7 +98,7 @@ class CheckersBoard(object):
 			# 					( 0, 5, 0, 5, 2, 5, 2, 5 ),
 			# 					( 5, 2, 5, 4, 5, 0, 5, 1 ),
 			# 					( 4, 5, 4, 5, 0, 5, 4, 5 ), )
-			# White victory through opponent moves 
+			# White victory through no opponent moves 
 			# self.boardArray = ( ( 5, 0, 5, 0, 5, 0, 5, 0 ),
 			# 					( 2, 5, 2, 5, 2, 5, 2, 5 ),
 			# 					( 5, 2, 5, 2, 5, 2, 5, 2 ),
@@ -108,14 +108,14 @@ class CheckersBoard(object):
 			# 					( 5, 1, 5, 1, 5, 2, 5, 0 ),
 			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ), )
 			# Tricky finish
-			# self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
-			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
-			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
-			# 					( 2, 5, 4, 5, 0, 5, 2, 5 ),
-			# 					( 5, 0, 5, 0, 5, 0, 5, 0 ),
-			# 					( 0, 5, 0, 5, 0, 5, 0, 5 ),
-			# 					( 5, 2, 5, 0, 5, 0, 5, 2 ),
-			# 					( 4, 5, 0, 5, 0, 5, 0, 5 ), )
+			self.boardArray = ( ( 5, 3, 5, 0, 5, 0, 5, 0 ),
+								( 0, 5, 0, 5, 0, 5, 0, 5 ),
+								( 5, 0, 5, 0, 5, 0, 5, 0 ),
+								( 2, 5, 4, 5, 0, 5, 2, 5 ),
+								( 5, 0, 5, 0, 5, 0, 5, 0 ),
+								( 0, 5, 0, 5, 0, 5, 0, 5 ),
+								( 5, 2, 5, 0, 5, 0, 5, 2 ),
+								( 4, 5, 0, 5, 0, 5, 0, 5 ), )
 
 		else:
 			# store an immutable copy
@@ -125,6 +125,7 @@ class CheckersBoard(object):
 		self.boardWidth = 8
 		self.boardHeight = 8
 		self.drawCounter = _drawCounter  # After this many moves, consider the game a draw
+		self.moveCounter = _moveCounter
 
 
 	def getCurrentPlayerId(self):
@@ -168,6 +169,10 @@ class CheckersBoard(object):
 
 	def resetDrawCounter(self, _drawCounter=40):
 		self.drawCounter = _drawCounter
+
+
+	def getMoveCounter(self):
+		return self.moveCounter
 
 
 	def kingMe(self, board, verbose=False):
@@ -336,7 +341,7 @@ class CheckersBoard(object):
 		# Make the board immutable again
 		newBoard = tuple( map(tuple, newBoard) )
 
-		return CheckersBoard(newBoard, self.getOtherPlayerId(), self.drawCounter-1)
+		return CheckersBoard(newBoard, self.getOtherPlayerId(), self.drawCounter-1, self.moveCounter+1)
 
 
 	def isWin(self):
@@ -363,7 +368,7 @@ class CheckersBoard(object):
 
 
 	def copy(self):
-		return CheckersBoard(self.getBoardArray(), self.getCurrentPlayerId(), self.drawCounter)
+		return CheckersBoard(self.getBoardArray(), self.getCurrentPlayerId(), self.drawCounter, self.moveCounter)
 
 
 	def getPieceConfig(self):
