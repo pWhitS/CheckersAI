@@ -86,9 +86,12 @@ def aggression_scorer(board, p1_men, p1_kings, p2_men, p2_kings):
 	advantage = total_p1 - total_p2 # total piece advantage
 	advantage += p1_kings - p2_kings # king advantage is double counted
 
+	# No aggression for no advantage
 	if advantage > 0 and board.getCurrentPlayerId() == 2:
 		return agro_score
 	if advantage < 0 and board.getCurrentPlayerId() == 1:
+		return agro_score
+	if advantage == 0:
 		return agro_score
 
 	piece_locations = board.getPieceLocations()	
@@ -319,7 +322,7 @@ def alpha_beta(board, depth, eval_fn = basic_evaluate,
 if __name__ == "__main__":
 	#basic_evaluate = memoize(basic_evaluate)
 
-	ab_player = lambda board: alpha_beta(board, depth=4, eval_fn=basic_evaluate)
+	ab_player = lambda board: alpha_beta(board, depth=3, eval_fn=basic_evaluate)
 
 	ab_player_pd = lambda board: progressive_deepener(board,
 													  search_fn=alpha_beta,
@@ -333,7 +336,7 @@ if __name__ == "__main__":
 
 	#run_game(ab_player_pd, ab_player_pd)
 
-	run_game(ab_player_pd, ab_player_pd)
+	run_game(human_player, ab_player_pd)
 
 
 
