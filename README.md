@@ -37,7 +37,7 @@ A jump can be performed by simply selecting the location beyond the jump piece. 
 <b>Multiple (Triple) Jump: </b>  <br>
 <img src="https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/triple_jump.png" height=35% width=35%/>
 <br><br>
-<b>How to Win or Lose</b><br>
+<b>How to Win, Lose, or Draw:</b><br>
 1. Capture all of your opponent's pieces.<br>
 2. Force your opponent to have no legal remaining moves.<br>
 3. A draw occurs after no captures have taken place for 40 moves. <br>
