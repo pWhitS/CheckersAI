@@ -8,9 +8,17 @@ Download this repository:
 git clone https://github.com/pWhitS/CheckersAI.git
 ```
 Or download the ZIP file above and extract it.
+<br>
+How to Play:
+The AI player moves on its own. You just have to wait for it to finish thinking. <br>
 
+For human players, when you are done thinking, first select the piece you want to move, then select the move location. Standard checkers rules apply. <br>
+<br>
+To select a piece or a move location input a column-row pair, such as: A5, C7, H6, or D0. You will be prompted for each as shown below. 
+<br>
+![alt tag](https://raw.githubusercontent.com/pWhitS/CheckersAI/master/images/start.png)
 
-
+After each move, the updated board is printed. 
 
 
 
