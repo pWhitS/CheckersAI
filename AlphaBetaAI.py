@@ -5,7 +5,7 @@ from math import sqrt
 
 VERY_VERBOSE = False
 
-WIN_SCORE = 1024  # 1000 + maximum piece type score
+WIN_SCORE = 1024  # 1000 + (Max piece type score)
 LOSS_SCORE = -WIN_SCORE
 DRAW_SCORE = -900
 
@@ -78,11 +78,13 @@ def aggression_scorer(board, p1_men, p1_kings, p2_men, p2_kings):
 	total_pieces = p1_men + p1_kings + p2_men + p2_kings
 
 	if total_pieces >= 12:
+		print("0")
 		return agro_score # no aggression bonus
 
 	total_p1 = p1_men + p1_kings
 	total_p2 = p2_men + p2_kings
 
+	# positive = player1 advantage, negative = player2 advantage
 	advantage = total_p1 - total_p2 # total piece advantage
 	advantage += p1_kings - p2_kings # king advantage is double counted
 
@@ -103,10 +105,10 @@ def aggression_scorer(board, p1_men, p1_kings, p2_men, p2_kings):
 		for p2 in p2list:
 			aggregate_distance += euclidean_distance(p1, p2)
 
-	average_distance = aggregate_distance / total_pieces
-	agro_score = abs(advantage * (total_pieces / average_distance))
+	# Aggression = Advantage over Average distance
+	agro_score = (advantage * (aggregate_distance / total_pieces)) / 5
 
-	# print("agro:", agro_score)
+	#print("agro:", round(agro_score))
 	return round(agro_score) 
 
 
