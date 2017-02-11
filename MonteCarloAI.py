@@ -7,7 +7,7 @@ from time import time
 from AlphaBetaAI import *
 
 
-VERY_VERBOSE = False
+VERY_VERBOSE = True
 
 class Node():
 
@@ -125,8 +125,8 @@ def playlist_to_generator(board, play_list):
 			pass	
 
 
-def is_terminal(node):
-	return node.board.isGameOver()
+def is_terminal(node, depth):
+	return node.board.isGameOver() or (depth == 0)
 
 
 def propigate_wins(cur_node):
@@ -157,13 +157,12 @@ def get_ucb_max(cur_node):
 	return max_node
 
 
-def mcts_playout(root_node, get_next_moves_fn):
+def mcts_playout(root_node, get_next_moves_fn, depth=25):
 	cur_node = root_node
 	cur_node.playouts += 1
-	depth = 0
 	is_forced_loss = False
 
-	while not is_terminal(cur_node):
+	while not is_terminal(cur_node, depth) or is_forced_loss:
 		# Move has not been extended
 		if len(cur_node.nextlist) == 0:
 			next_moves = get_next_moves_fn(cur_node.board, 0)
@@ -194,7 +193,7 @@ def mcts_playout(root_node, get_next_moves_fn):
 				cur_node = get_ucb_max(cur_node)
 
 		cur_node.playouts += 1
-		depth += 1
+		depth -= 1
 
 
 	#print(depth)
@@ -248,7 +247,10 @@ def monte_carlo_search(board, get_next_moves_fn, timeout=10, verbose=True):
 
 	
 def double_up(board):
-	ai_type = randint(0,1)
+	if sum(board.getPieceCount()) < 8:
+		ai_type = randint(0,1)
+	else:
+		ai_type = 1
 
 	if ai_type == 0:
 		print("MCTS")
@@ -259,7 +261,7 @@ def double_up(board):
 									  search_fn=alpha_beta,
 									  eval_fn=basic_eval_memoized,
 									  get_next_moves_fn=get_ordered_moves_helper,
-									  timeout=15)
+									  timeout=5)
 
 
 
@@ -272,11 +274,11 @@ if __name__ == "__main__":
 													  search_fn=alpha_beta,
 													  eval_fn=basic_eval_memoized,
 													  get_next_moves_fn=get_ordered_moves_helper,
-													  timeout=15)
-	dp = lambda board: double_up(board)
+													  timeout=5)
+	double_player = lambda board: double_up(board)
 
 
-	run_game(ab_player_pd, dp)
+	run_game(double_player, ab_player_pd)
 
 
 
