@@ -245,25 +245,6 @@ def monte_carlo_search(board, get_next_moves_fn, timeout=10, verbose=True):
 
 	return max_node.play
 
-	
-def double_up(board):
-	if sum(board.getPieceCount()) < 8:
-		ai_type = randint(0,1)
-	else:
-		ai_type = 1
-
-	if ai_type == 0:
-		print("MCTS")
-		return monte_carlo_search(board, get_all_next_moves, timeout=15)
-	else:
-		print("Alpha-Beta")
-		return progressive_deepener(board,
-									  search_fn=alpha_beta,
-									  eval_fn=basic_eval_memoized,
-									  get_next_moves_fn=get_ordered_moves_helper,
-									  timeout=5)
-
-
 
 
 if __name__ == "__main__":
@@ -275,10 +256,8 @@ if __name__ == "__main__":
 													  eval_fn=basic_eval_memoized,
 													  get_next_moves_fn=get_ordered_moves_helper,
 													  timeout=5)
-	double_player = lambda board: double_up(board)
 
-
-	run_game(double_player, ab_player_pd)
+	run_game(mcts_player, ab_player_pd)
 
 
 
