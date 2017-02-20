@@ -32,15 +32,31 @@ mcts_player = lambda board: monte_carlo_search(board, get_all_next_moves, timeou
 
 # ADVANCED AI PLAYERS
 # Combinations of techniques. Very experimental.
+def randomized_player(board):
+	ai_type = 1
+	if sum(board.getPieceCount()) < 10:
+		ai_type = randint(0,1)		
 
-# Nothing here yet...
+	if ai_type == 0:
+		print("MCTS")
+		return monte_carlo_search(board, get_all_next_moves, timeout=15)
+	else:
+		print("Alpha-Beta")
+		return progressive_deepener(board,
+									  search_fn=alpha_beta,
+									  eval_fn=basic_eval_memoized,
+									  get_next_moves_fn=get_ordered_moves_helper,
+									  timeout=5)
+
+
+rand_double_player = lambda board: randomized_player(board)
 
 
 ## PLAY AGAINST THE AI PLAYERS
 # run_game(human_player, basic_player)
 # run_game(basic_player, human_player)
 
-run_game(human_player, progressive_player)
+#run_game(human_player, progressive_player)
 # run_game(progressive_player, human_player)
 
 
@@ -48,6 +64,7 @@ run_game(human_player, progressive_player)
 # run_game(progressive_player, basic_player)
 # run_game(basic_player, progressive_player)
 # run_game(progressive_player, progressive_player)
+run_game(rand_double_player, basic_player)
 
 
 
