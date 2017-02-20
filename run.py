@@ -35,7 +35,7 @@ mcts_player = lambda board: monte_carlo_search(board, get_all_next_moves, timeou
 
 def switch_player(board):
 	ai_type = 1
-	if sum(board.getPieceCount()) < 10 and board.getDrawCounter() < 15:  # "End game" stall mixing
+	if sum(board.getPieceCount()) < 10 and board.getDrawCounter() < 20:  # "End game" stall mixing
 		ai_type = randint(0,1)		
 
 	if ai_type == 0:
