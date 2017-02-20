@@ -78,7 +78,6 @@ def aggression_scorer(board, p1_men, p1_kings, p2_men, p2_kings):
 	total_pieces = p1_men + p1_kings + p2_men + p2_kings
 
 	if total_pieces >= 12:
-		print("0")
 		return agro_score # no aggression bonus
 
 	total_p1 = p1_men + p1_kings
@@ -173,6 +172,36 @@ def combine_move_sets(move_set_1, move_set_2):
 
 	return new_move_set
 
+		# NEXT MOVES CODE FOR COMPULSORY JUMPS
+		# for i in second_order:
+		# 	for j in second_order: 
+		# 		candidate_move_token = board._getTokenFromPoint( (prow+i, pcol+j) )
+		# 		piece_token = board._getTokenFromPoint(piece)
+		# 		move_set.append( (piece_token, candidate_move_token) )
+
+		# 		try:
+		# 			new_board = board.doMove(piece_token, candidate_move_token)
+		# 			new_board.currentPlayer = board.currentPlayer
+		# 			move_set = combine_move_sets(list(move_set), get_all_next_moves(new_board, move_depth+1))
+		# 			jump_available = True
+		# 		except InvalidMoveException:
+		# 			move_set = move_set[:-1]
+		# 			continue
+
+		# if jump_available:
+		# 	break
+
+		# # Only check here if no jumps are available
+		# for i in first_order:
+		# 	for j in first_order:
+		# 		candidate_move_token = board._getTokenFromPoint( (prow+i, pcol+j) )
+		# 		piece_token = board._getTokenFromPoint(piece)
+
+		# 		try:
+		# 			new_board = board.doMove(piece_token, candidate_move_token)
+		# 			move_set.append( (piece_token, candidate_move_token) )
+		# 		except InvalidMoveException:
+		# 			continue
 
 def get_all_next_moves(board, move_depth, recursive=True):
 	first_order = [] # Single space moves don't apply for multiple jumps
