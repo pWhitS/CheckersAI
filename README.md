@@ -1,5 +1,26 @@
 # CheckersAI
 A Checkers playing Artificial Intelligence, utilizing multiple game playing AI techniques.
+<br>
+Skip to the bottom for a <i>quick start</i> guide to play.
+
+## How does it work?
+
+The AI player can take advantage of two different AI algorithms. The first is Alpha-Beta Tree Search with a board position scoring heuristic. The second is Monte-Carlo Tree Search (MCTS) with Upper Confidence Bounds (UCB). In their current implementations, Alpha-Beta is much more efficient and is a much stronger player. 
+
+### Alpha-Beta
+
+Using Minimax with Alpha-Beta pruning, the tree search was able to achieve tree depths between 5 and 10 within 15 seconds. The achievable depth varies throughout the game because the branching factor fluctuates. 
+
+#### Multi-Processing 
+
+There is an implementation of Alpha-Beta taking advantage of multiprocessing. It doesn't seem to make a big difference in tree search depths. 
+
+### MCTS
+
+
+### Future Implementations...
+
+I am looking into adapting a Convolution Neural Network (CNN) to assist MCTS, or Alpha-Beta, or to play entirely on it own. The plan would be to use Supervised training with the board scoring heuristic as the training metric. After the CNN converges on the Alpha-Beta player's skill level, Reinforcement Learning would be used to further improve the CNN. 
 
 
 ## Quick Start
