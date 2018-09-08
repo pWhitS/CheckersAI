@@ -56,7 +56,7 @@ rand_double_player = lambda board: switch_player(board)
 # run_game(human_player, basic_player)
 # run_game(basic_player, human_player)
 
-#run_game(human_player, progressive_player)
+run_game(human_player, progressive_player)
 # run_game(progressive_player, human_player)
 
 
@@ -64,7 +64,7 @@ rand_double_player = lambda board: switch_player(board)
 # run_game(progressive_player, basic_player)
 # run_game(basic_player, progressive_player)
 # run_game(progressive_player, progressive_player)
-run_game(rand_double_player, basic_player)
+# run_game(rand_double_player, basic_player)
 
 
 
