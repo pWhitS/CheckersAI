@@ -43,11 +43,11 @@ class CheckersBoard(object):
 	#"LARGE BLUE CIRCLE"
 	"""
 
-	board_symbol_mapping = { 0: u' ',
+	board_symbol_mapping = { 0: u'  ',
 							 1: unicodedata.lookup("LARGE RED CIRCLE"),  #normal 'white' piece
 							 2: unicodedata.lookup("MEDIUM WHITE CIRCLE"), #normal 'black' piece
 							 3: unicodedata.lookup("HEAVY LARGE CIRCLE"), #king 'white' piece
-							 4: unicodedata.lookup("LARGE CIRCLE"), #king 'black' piece
+							 4: unicodedata.lookup("WHITE MEDIUM SMALL SQUARE"), #king 'black' piece
 							 5: unicodedata.lookup("BLACK LARGE SQUARE")} 
 
 	def __init__(self, _boardArray=None, _currentPlayer=1, _drawCounter=40, _moveCounter=0):
@@ -439,7 +439,7 @@ class CheckersBoard(object):
 
 	def __str__(self):
 		""" Return a string representation of this board """
-		retVal = [ "  " + '  '.join([str(x) for x in "ABCDEFGH"]) ]
+		retVal = [ "  " + '   '.join([str(x) for x in "ABCDEFGH"]) ]
 		retVal += [ str(i) + ' ' + '  '.join([self.board_symbol_mapping[x] for x in row]) for i, row in enumerate(self.boardArray) ]
 		return '\n' + '\n'.join(retVal) + '\n'
 
